@@ -3,15 +3,21 @@ import path from 'path';
 import dotenv from 'dotenv';
 import { ChatGPTAPI } from "chatgpt";
 import minimist from 'minimist';
+import cliProgress from 'cli-progress';
 
 dotenv.config();
 
 export const main = async (prompt, numAsks, apiKey = process.env.API_KEY || minimist(process.argv.slice(2)).apiKey, model = "gpt-4") => {
+    console.log("Starting script...");
+
     if (!apiKey) {
         throw new Error("API Key not found. Please check your .env file.");
     }
 
     const NUM_ASKS = Number(numAsks);
+    
+    const progressBar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);
+    progressBar.start(NUM_ASKS, 0);
 
     const api = new ChatGPTAPI({
         apiKey: apiKey,
@@ -25,9 +31,15 @@ export const main = async (prompt, numAsks, apiKey = process.env.API_KEY || mini
     for (let i = 0; i < NUM_ASKS; i++) {
         const message = `Question: ${prompt} \n\n Answer: Let's work this out in a step by step way to be sure we have the right answer.`;
         requests.push(api.sendMessage(message));
+        progressBar.update(i + 1);
     }
 
+    console.log("Requests sent, waiting for responses...");
+
     const responses = await Promise.allSettled(requests);
+    progressBar.stop();
+
+    console.log("Responses received, processing...");
 
     const resolvedResponses = responses.filter(r => r.status === 'fulfilled');
 
@@ -38,6 +50,8 @@ export const main = async (prompt, numAsks, apiKey = process.env.API_KEY || mini
 
     const researcherResponse = await api.sendMessage(researcherPrompt);
 
+    console.log("Researcher Response received, resolving...");
+
     const researcherId = researcherResponse.id;
 
     const resolverPrompt = `You are a resolver tasked with 1) finding which of the ${NUM_ASKS} answer options the researcher thought was best 2) improving that answer, and 3) Printing the improved answer in full. Let's work this out in a step by step way to be sure we have the right answer:`;
@@ -45,6 +59,8 @@ export const main = async (prompt, numAsks, apiKey = process.env.API_KEY || mini
     const resolverResponse = await api.sendMessage(resolverPrompt, {
         parentMessageId: researcherId,
     });
+
+    console.log("Resolver Response received, compiling output...");
 
     const gptOutput = [
     "# Prompt",
@@ -67,11 +83,13 @@ export const main = async (prompt, numAsks, apiKey = process.env.API_KEY || mini
     // Write output to a file
     try {
         await fs.mkdir(outputDir, { recursive: true });
-        await fs.writeFile(outputPath, gptOutput);
+        await fs.writeFile(outputPath,gptOutput);
         console.log(`Output was successfully saved to ${outputPath}`);
     } catch (err) {
         console.error("An error occurred while writing the output to a file: ", err);
     }
+
+    console.log("Script completed successfully!");
 
     return {
         prompt: prompt,
@@ -79,3 +97,4 @@ export const main = async (prompt, numAsks, apiKey = process.env.API_KEY || mini
         gptOutput: gptOutput
     };
 };
+
