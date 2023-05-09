@@ -48,4 +48,3 @@ Outputs are logged to console and the entire conversations are saved in the outp
 node smartgpt.js "I left 5 clothes out to dry in the sun. It took them 5 hours to dry completely. How long would it take to dry 30 clothes?" --model "gpt-3.5-turbo" --numAsks 4 --logging
 ```
 
-This command will use the "gpt-3.5-turbo" model, generate 4 response options, and enable verbose logging.

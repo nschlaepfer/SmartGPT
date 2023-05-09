@@ -9,8 +9,12 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "body-parser": "^1.20.2",
     "chatgpt": "^5.2.4",
     "dotenv": "^16.0.3",
+    "ejs": "^3.1.9",
+    "express": "^4.18.2",
+    "marked": "^5.0.1",
     "minimist": "^1.2.8"
   },
   "type": "module"

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="SmartGPT Results" />
+    <title>SmartGPT Results</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>SmartGPT Results</h1>
+      <div class="card">
+        <div class="card-header">User Input</div>
+        <div class="card-body">
+          <h5 class="card-title">Prompt: <%= output.prompt %></h5>
+          <p class="card-text">Number of Asks: <%= output.numAsks %></p>
+        </div>
+      </div>
+      <div class="card mt-4">
+        <div class="card-header">GPT Output</div>
+        <div class="card-body">
+          <p class="card-text"><%= output.gptOutput %></p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
