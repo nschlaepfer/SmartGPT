@@ -1,50 +1,50 @@
 # SmartGPT
 
-A Node.js script implementation of the SmartGPT prompting system by [AI Explained](https://www.youtube.com/@ai-explained-) on youtube, see the video [here](https://www.youtube.com/watch?v=wVzuvf9D9BU)
+SmartGPT is a Node.js script implementation of a dynamic prompting system, inspired by [AI Explained](https://www.youtube.com/@ai-explained-) on YouTube. This tool generates multiple responses to a prompt and evaluates their quality, which can be particularly useful for improving AI-driven text generation. Check out the original video tutorial [here](https://www.youtube.com/watch?v=wVzuvf9D9BU).
 
 ## Prerequisites
 
-- Node.js installed on your machine. You can download it from [here](https://nodejs.org/en/download/).
-- An OpenAI API key. You can get one by signing up on the [OpenAI platform](https://beta.openai.com/signup/).
+- Node.js installed on your system. Download it from [here](https://nodejs.org/en/download/).
+- An OpenAI API key. Register on the [OpenAI platform](https://beta.openai.com/signup/) to obtain one.
 
 ## Installation
 
-1. Clone this repository or download the files.
+1. Clone this repository or download the source files.
 
-2. In the directory containing the `smartgpt.js` file, run the following command to install the required dependencies:
+2. Navigate to the directory containing the `smartgpt.js` file, then run the following command to install necessary dependencies:
 
    ```bash
    npm install
    ```
 
-3. Create a copy of the `.example.env` file in the same directory as `smartgpt.js` and rename it to `.env` (literally nothing before the dot).
+3. Make a copy of the `.example.env` file in the same directory as `smartgpt.js` and rename it to `.env`.
 
-4. Open the `.env` file and replace `your_api_key_here` with your actual OpenAI API key.
+4. Open the `.env` file and replace `your_api_key_here` with your OpenAI API key.
 
 ## Usage
 
-To run the script, execute the following command:
+To run the script, type the following command:
 
 ```bash
-node smartgpt.js "Your prompt goes here" [options]
+node server
 ```
 
-Outputs are logged to console and the entire conversations are saved in the output folder for later review.
+Upon running, you will be prompted to enter a number. This number specifies how many response options the program will generate and evaluate. Although the number of responses can technically be any positive integer, the effectiveness of the evaluation may vary for numbers beyond 3, depending on the complexity of the prompt and topic.
 
-### Options
+The outputs are logged to the console, and the entire conversations are saved in the output folder for later review.
 
-- `--model`: Specify the model name to use (default: "gpt-4").
-   Example: `--model "gpt-3.5-turbo"`
+## Code Explanation
 
-- `--numAsks`: Specify the number of response options to generate (default: 3).
-   Example: `--numAsks 4`
+The code is structured in a way that it interacts with the OpenAI API to generate and evaluate responses to a given prompt. Here's a brief explanation of the flow:
 
-- `--logging`: Enable verbose logging (default: false).
-   Example: `--logging`
+1. The script first verifies if the API key exists in the `.env` file. If it doesn't, an error is thrown.
+2. A progress bar is initialized to provide visual feedback during the operation.
+3. The script generates a certain number of responses to the prompt (the number is specified by the user at runtime).
+4. Once all responses are received, the script prepares a 'researcher' prompt that asks for a critical review of all answer options.
+5. The researcher's response is then sent to the API.
+6. A 'resolver' prompt is generated, which tasks the AI with identifying the best answer and improving upon it.
+7. The resolver's response is received, and the final output is compiled and saved in the `output` folder in the project's directory.
 
-#### Example
+## Acknowledgements
 
-```bash
-node smartgpt.js "I left 5 clothes out to dry in the sun. It took them 5 hours to dry completely. How long would it take to dry 30 clothes?" --model "gpt-3.5-turbo" --numAsks 4 --logging
-```
-
+This project was inspired by the content provided by [AI Explained](https://www.youtube.com/@ai-explained-). Be sure to check them out for more AI-related content.
