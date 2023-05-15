@@ -23,10 +23,10 @@ app.post('/run', async (req, res) => {
 
     // Input validation
     if (!prompt || typeof prompt !== 'string' || prompt.trim() === '') {
-      return res.status(400).send("Invalid 'prompt' value");
+      return res.status(400).json({ error: "Invalid 'prompt' value" });
     }
     if (!numAsks || isNaN(numAsks) || Number(numAsks) <= 0) {
-      return res.status(400).send("Invalid 'numAsks' value");
+      return res.status(400).json({ error: "Invalid 'numAsks' value" });
     }
 
     const result = await main(prompt, numAsks);
@@ -43,9 +43,10 @@ app.post('/run', async (req, res) => {
       console.error("An error occurred while writing the output to a file: ", err);
     }
 
-    res.render('output', { output: result });
+    // Return JSON instead of rendering a new view
+    res.json({ output: result });
   } catch (err) {
-    res.status(500).send("An error occurred: " + err.message);
+    res.status(500).json({ error: "An error occurred: " + err.message });
   }
 });
 

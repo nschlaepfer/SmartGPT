@@ -38,6 +38,7 @@
 
         .form-control {
             padding: 10px;
+            padding-right: 20px;
             width: 100%;
         }
 
@@ -60,27 +61,28 @@
     <main class="container">
         <h1>SmartGPT</h1>
         <form action="/run" method="POST">
-            <div class="form-group">
-                <label for="prompt">Prompt:</label>
-                <input type="text" class="form-control" id="prompt" name="prompt" required aria-required="true"
-                    aria-label="Enter your prompt here">
-                <div class="invalid-feedback">Please enter a prompt. For example, 'Make a presentaion on the solar
-                    system.'</div>
-            </div>
-            <div class="form-group">
-                <label for="numAsks">Number of Questions Allowed:</label>
-                <input type="number" class="form-control" id="numAsks" name="numAsks" required aria-required="true"
-                    aria-label="Enter the number of questions you want to ask">
-                <div class="invalid-feedback">Please enter the number of questions you want to ask.</div>
-
+            <fieldset>
+                <legend>ChatGPT Parameters</legend>
+                <div class="form-group">
+                    <label for="prompt">Prompt:</label>
+                    <input type="text" class="form-control" id="prompt" name="prompt" required
+                        aria-describedby="promptHelp">
+                    <small id="promptHelp" class="form-text text-muted">Please enter a prompt. For example, 'Make a
+                        presentation on the solar system.'</small>
+                </div>
+                <div class="form-group">
+                    <label for="numAsks">Number of Questions Allowed:</label>
+                    <input type="number" class="form-control" id="numAsks" name="numAsks" required
+                        aria-describedby="numAsksHelp">
+                    <small id="numAsksHelp" class="form-text text-muted">Please enter the number of questions you want
+                        to ask.</small>
+                </div>
                 <div class="form-group">
                     <label for="apiKey">OpenAI API Key:</label>
-                    <input type="password" class="form-control" id="apiKey" name="apiKey" required aria-required="true"
-                        aria-label="Enter your OpenAI API Key">
-                    <div class="invalid-feedback">Please enter your OpenAI API Key.</div>
+                    <input type="password" class="form-control" id="apiKey" name="apiKey" required
+                        aria-describedby="apiKeyHelp">
+                    <small id="apiKeyHelp" class="form-text text-muted">Please enter your OpenAI API Key.</small>
                 </div>
-
-                <!-- Add a radio button group for the GPT version -->
                 <div class="form-group">
                     <label>GPT Version:</label>
                     <div>
@@ -91,17 +93,44 @@
                         <input type="radio" id="gpt3" name="gptVersion" value="gpt-3.5-turbo">
                         <label for="gpt3">GPT-3.5-turbo</label>
                     </div>
-
                 </div>
-            </div>
+            </fieldset>
             <button type="submit" class="btn btn-primary">Submit</button>
         </form>
         <!-- Output and logs container -->
-        <div class="output-container" id="output">
+        <!-- Output and logs container -->
+        <section class="output-container" id="output">
+            <h2>Output and Logs</h2>
             <!-- Output will be appended here by script.js -->
-        </div>
+            <textarea id="outputText" style="width: 100%; height: 200px;" readonly></textarea>
+        </section>
+
     </main>
-    <script src="script.js"></script>
+    <!-- index.ejs -->
+
+    <!-- ... -->
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('form').on('submit', function (event) {
+                event.preventDefault();
+    
+                $.ajax({
+                    type: 'POST',
+                    url: '/run',
+                    data: $(this).serialize(),
+                    success: function (response) {
+                        $('#outputText').val(response.gptOutput);
+                    },
+                    error: function (error) {
+                        console.log(error);
+                    }
+                });
+            });
+        });
+    </script>
+
 </body>
 
 </html>
