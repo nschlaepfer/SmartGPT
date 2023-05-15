@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -20,6 +21,16 @@
             margin: 0 auto;
             padding: 20px;
         }
+
+        .output-container {
+            margin-top: 20px;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            padding: 10px;
+            height: 200px;
+            overflow-y: auto;
+        }
+
 
         .form-group {
             margin-bottom: 20px;
@@ -44,23 +55,53 @@
         }
     </style>
 </head>
+
 <body>
     <main class="container">
         <h1>SmartGPT</h1>
         <form action="/run" method="POST">
             <div class="form-group">
                 <label for="prompt">Prompt:</label>
-                <input type="text" class="form-control" id="prompt" name="prompt" required aria-required="true" aria-label="Enter your prompt here">
-                <div class="invalid-feedback">Please enter a prompt. For example, 'Make a presentaion on the solar system.'</div>
+                <input type="text" class="form-control" id="prompt" name="prompt" required aria-required="true"
+                    aria-label="Enter your prompt here">
+                <div class="invalid-feedback">Please enter a prompt. For example, 'Make a presentaion on the solar
+                    system.'</div>
             </div>
             <div class="form-group">
                 <label for="numAsks">Number of Questions Allowed:</label>
-                <input type="number" class="form-control" id="numAsks" name="numAsks" required aria-required="true" aria-label="Enter the number of questions you want to ask">
+                <input type="number" class="form-control" id="numAsks" name="numAsks" required aria-required="true"
+                    aria-label="Enter the number of questions you want to ask">
                 <div class="invalid-feedback">Please enter the number of questions you want to ask.</div>
+
+                <div class="form-group">
+                    <label for="apiKey">OpenAI API Key:</label>
+                    <input type="password" class="form-control" id="apiKey" name="apiKey" required aria-required="true"
+                        aria-label="Enter your OpenAI API Key">
+                    <div class="invalid-feedback">Please enter your OpenAI API Key.</div>
+                </div>
+
+                <!-- Add a radio button group for the GPT version -->
+                <div class="form-group">
+                    <label>GPT Version:</label>
+                    <div>
+                        <input type="radio" id="gpt4" name="gptVersion" value="gpt-4" checked>
+                        <label for="gpt4">GPT-4</label>
+                    </div>
+                    <div>
+                        <input type="radio" id="gpt3" name="gptVersion" value="gpt-3.5-turbo">
+                        <label for="gpt3">GPT-3.5-turbo</label>
+                    </div>
+
+                </div>
             </div>
             <button type="submit" class="btn btn-primary">Submit</button>
         </form>
+        <!-- Output and logs container -->
+        <div class="output-container" id="output">
+            <!-- Output will be appended here by script.js -->
+        </div>
     </main>
     <script src="script.js"></script>
 </body>
+
 </html>
