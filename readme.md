@@ -1,5 +1,9 @@
 # SmartGPT
 
+<img width="864" alt="Screenshot 2023-05-15 at 11 15 28 AM" src="https://github.com/nschlaepfer/SmartGPT/assets/44988633/9e345708-1e87-4846-ac26-7e9d7cdc9f02">
+
+
+
 SmartGPT is a Node.js script implementation of a dynamic prompting system, inspired by [AI Explained](https://www.youtube.com/@ai-explained-) on YouTube. This tool generates multiple responses to a prompt and evaluates their quality, which can be particularly useful for improving AI-driven text generation. Check out the original video tutorial [here](https://www.youtube.com/watch?v=wVzuvf9D9BU).
 
 ## Prerequisites
