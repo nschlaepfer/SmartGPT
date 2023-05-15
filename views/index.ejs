@@ -5,8 +5,44 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="ChatGPT Interface">
     <title>ChatGPT Interface</title>
-
     <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Add some custom CSS for improvements */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-control {
+            padding: 10px;
+            width: 100%;
+        }
+
+        .btn {
+            color: #fff;
+            background-color: #007bff;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .btn:hover {
+            background-color: #0056b3;
+        }
+    </style>
 </head>
 <body>
     <main class="container">
@@ -14,18 +50,17 @@
         <form action="/run" method="POST">
             <div class="form-group">
                 <label for="prompt">Prompt:</label>
-                <input type="text" class="form-control" id="prompt" name="prompt" required aria-required="true" aria-label="Prompt">
-                <div class="invalid-feedback">Please enter a prompt.</div>
+                <input type="text" class="form-control" id="prompt" name="prompt" required aria-required="true" aria-label="Enter your prompt here">
+                <div class="invalid-feedback">Please enter a prompt. For example, 'Make a presentaion on the solar system.'</div>
             </div>
             <div class="form-group">
-                <label for="numAsks">Number of Asks:</label>
-                <input type="number" class="form-control" id="numAsks" name="numAsks" required aria-required="true" aria-label="Number of Asks">
-                <div class="invalid-feedback">Please enter the number of asks.</div>
+                <label for="numAsks">Number of Questions Allowed:</label>
+                <input type="number" class="form-control" id="numAsks" name="numAsks" required aria-required="true" aria-label="Enter the number of questions you want to ask">
+                <div class="invalid-feedback">Please enter the number of questions you want to ask.</div>
             </div>
             <button type="submit" class="btn btn-primary">Submit</button>
         </form>
     </main>
     <script src="script.js"></script>
-    
 </body>
 </html>

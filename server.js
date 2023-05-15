@@ -5,7 +5,7 @@ import fs from 'fs/promises';
 import path from 'path';
 
 const app = express();
-const port = 3000;
+const port = 3005;
 
 // Add this line before your routes
 app.use(express.static('public')); // or wherever your static files are located

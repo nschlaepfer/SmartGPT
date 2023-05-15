@@ -1,0 +1,25 @@
+.
+├── chat-bot-interface
+│   ├── public
+│   └── src
+├── file structure
+├── old outputs
+│   ├── 1683601522976.txt
+│   ├── 1683602952536.txt
+│   ├── 1683603892903.txt
+│   ├── Briefly_describe_what_the_atomic_1683604259640.txt
+│   ├── Explain_the_following_concepts_in_1683605576756.txt
+│   ├── Using_find_and_grep_commands_1683606084635.txt
+│   └── You_have_been_asked_to_1683605111732.txt
+├── package-lock.json
+├── package.json
+├── readme.md
+├── script.js
+├── server.js
+├── smartgpt.js
+└── views
+    ├── index.ejs
+    ├── output.ejs
+    └── styles.css
+
+6 directories, 17 files
