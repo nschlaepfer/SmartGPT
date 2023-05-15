@@ -35,6 +35,9 @@ node server
 
 Upon running, you will be prompted to enter a number. This number specifies how many response options the program will generate and evaluate. Although the number of responses can technically be any positive integer, the effectiveness of the evaluation may vary for numbers beyond 3, depending on the complexity of the prompt and topic.
 
+## Usage NOTE
+GPT-4 is highly recomeneded, it will cost more than GPT-3.5 but produce much better results
+
 
  OUPUT IS NOT WORKING ON FRONT END. YOU WILL FIND THE FILE PATH TO THE OUPUT/
 FIX COMING SOON. 
