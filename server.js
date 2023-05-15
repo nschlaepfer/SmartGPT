@@ -3,7 +3,7 @@ import bodyParser from 'body-parser';
 import { main } from './smartgpt.js';
 import fs from 'fs/promises';
 import path from 'path';
-
+import session from 'express-session';
 const app = express();
 const port = 3005;
 
@@ -18,6 +18,9 @@ app.get('/', (req, res) => {
 });
 
 app.post('/run', async (req, res) => {
+
+  const { apiKey } = req.body;
+  req.session.apiKey = apiKey;
   try {
     const { prompt, numAsks } = req.body;
 
@@ -49,6 +52,14 @@ app.post('/run', async (req, res) => {
     res.status(500).json({ error: "An error occurred: " + err.message });
   }
 });
+
+app.use(session({
+  secret: 'your_secret_key', // replace with a secret key of your choice
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: false } // if you're using HTTPS, set this to true
+}));
+
 
 app.listen(port, () => {
   console.log(`App running on http://localhost:${port}`);
