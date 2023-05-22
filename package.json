@@ -11,6 +11,7 @@
   "dependencies": {
     "body-parser": "^1.20.2",
     "chatgpt": "^5.2.4",
+    "cli-progress": "^3.12.0",
     "dotenv": "^16.0.3",
     "ejs": "^3.1.9",
     "express": "^4.18.2",
