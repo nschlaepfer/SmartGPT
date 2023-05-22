@@ -12,10 +12,14 @@ app.get('/', (req, res) => {
 });
 
 app.post('/generate', express.urlencoded({ extended: true }), async (req, res) => {
-    const { prompt, numAsks } = req.body;
+    const prompt = req.body.prompt;
+    const numAsks = req.body.numAsks;
     const output = await main(prompt, numAsks);
-    res.render('result', { output });
+    res.render('result', { output: output.detail.choices[0].message.text });
 });
+
+
+
 
 app.listen(3000, () => console.log('Server started on port 3000'));
 
