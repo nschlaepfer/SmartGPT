@@ -1,4 +1,5 @@
 
+<img width="864" alt="Screenshot 2023-05-23 at 1 06 39 PM" src="https://github.com/nschlaepfer/SmartGPT/assets/44988633/eb1a1112-87c3-4c62-932c-88a80a32a84f">
 
 
 
