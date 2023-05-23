@@ -4,57 +4,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="ChatGPT Interface">
     <title>ChatGPT Interface</title>
-    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.0.0-beta3/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        /* Add some custom CSS for improvements */
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f0f0f0;
+            background-color: #343a40;
+            color: #eee;
         }
 
         .container {
             max-width: 800px;
             margin: 0 auto;
             padding: 30px;
+            background-color: #202124;
+            border-radius: 8px;
         }
 
-        .output-container {
-            margin-top: 20px;
-            background-color: #fff;
-            border: 1px solid #ddd;
-            padding: 10px;
-            height: 280px;
-            overflow-y: auto;
+        h1 {
+            color: #1a73e8;
+            text-align: center;
+            font-weight: 500;
         }
 
-
-        .form-group {
-            margin-bottom: 20px;
-            margin-right: 31px;
-            
+        form {
+            padding: 2em;
+            border-radius: 5px;
+            background: #202124;
+            color: #eee;
         }
 
         .form-control {
-            padding: 10px;
-            padding-right: 20px;
-            width: 100%;
+            background: #313639;
+            color: #eee;
+            border-color: #5F6368;
+        }
+
+        .form-control:focus {
+            border-color: #1a73e8;
+            box-shadow: 0 0 0 0.2rem rgba(26, 115, 232, .25);
+        }
+
+        .form-label {
+            color: #eee;
         }
 
         .btn {
-            color: #fff;
-            background-color: #007bff;
+            background: linear-gradient(90deg, #1a73e8 0%, #134db2 100%);
             border: none;
             padding: 10px 20px;
             cursor: pointer;
             width: 100%;
+            border-radius: 5px;
+            transition: background 0.2s;
         }
 
         .btn:hover {
-            background-color: #0056b3;
+            background: linear-gradient(90deg, #134db2 0%, #1a73e8 100%);
+        }
+
+        .output-container {
+            margin-top: 2em;
+            background-color: #202124;
+            border: 1px solid #5F6368;
+            padding: 1em;
+            border-radius: 5px;
+            overflow-y: auto;
+            color: #eee;
+        }
+
+        textarea {
+            width: 100%;
+            height: 200px;
+            background: #313639;
+            border-color: #5F6368;
+            color: #eee;
         }
     </style>
 </head>
@@ -87,37 +113,52 @@
                 </div>
                 <div class="form-group">
                     <label>GPT Version:</label>
-                    <div>
-                        <input type="radio" id="gpt4" name="gptVersion" value="gpt-4" checked>
-                        <label for="gpt4">GPT-4</label>
-                    </div>
-                    <div>
-                        <input type="radio" id="gpt3" name="gptVersion" value="gpt-3.5-turbo">
-                        <label for="gpt3">GPT-3.5-turbo</label>
+                    <div class="radio-group">
+                        <div class="radio-option">
+                            <input type="radio" id="gpt4" name="gptVersion" value="gpt-4" checked>
+                            <label for="gpt4">GPT-4</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="gpt3" name="gptVersion" value="gpt-3.5-turbo">
+                            <label for="gpt3">GPT-3.5-turbo</label>
+                        </div>
                     </div>
                 </div>
+
             </fieldset>
-            <button type="submit" class="btn btn-primary">Submit</button>
+            <button type="submit" class="btn">Submit</button>
         </form>
-        <!-- Output and logs container -->
         <!-- Output and logs container -->
         <section class="output-container" id="output">
             <h2>Output and Logs</h2>
             <!-- Output will be appended here by script.js -->
-            <textarea id="outputText" style="width: 100%; height: 200px;" readonly></textarea>
+            <textarea id="outputText" readonly></textarea>
         </section>
 
     </main>
-    <!-- index.ejs -->
 
-    <!-- ... -->
+    <!-- Adding Footer -->
+    <footer class="text-center p-3 mt-2" style="background-color: #202124; color: #eee;">
+        <div class="container">
+            <p class="mb-0">Made by Nicolas W Schlaepfer</p>
+            <a href="https://github.com/nschlaepfer/SmartGPT" target="_blank"
+                style="color: #1a73e8; margin-right: 15px;">
+                <i class="fab fa-github"></i> GitHub
+            </a>
+            <a href="https://twitter.com/nos_ult?s=21&t=YmvkY7sPLzacW9HQ6XExaA" target="_blank" style="color: #1a73e8;">
+                <i class="fab fa-twitter"></i> Twitter
+            </a>
+        </div>
+    </footer>
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-beta3/js/bootstrap.bundle.min.js"></script>
+    <script src="https://kit.fontawesome.com/a076d05399.js"></script> <!-- Font Awesome for the social media icons -->
     <script>
         $(document).ready(function () {
             $('form').on('submit', function (event) {
                 event.preventDefault();
-    
+
                 $.ajax({
                     type: 'POST',
                     url: '/run',

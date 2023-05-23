@@ -4,7 +4,7 @@ import { main } from './smartgpt.js';
 import fs from 'fs/promises';
 import path from 'path';
 import session from 'express-session';
-const marked = require('marked');
+//const marked = require('marked');
 
 const app = express();
 const port = 3005;
