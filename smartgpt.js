@@ -94,7 +94,9 @@ export const main = async (prompt, numAsks, apiKey = process.env.API_KEY || mini
     return {
         prompt: prompt,
         numAsks: NUM_ASKS,
-        gptOutput: gptOutput
-    };
+        researcherResponse: researcherResponse.text,
+        resolverResponse: resolverResponse.text,
+      };
+      
 };
 
