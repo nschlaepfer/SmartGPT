@@ -55,12 +55,13 @@ app.post('/run', async (req, res) => {
       console.error("An error occurred while writing the output to a file: ", err);
     }
 
-    // Return JSON instead of rendering a new view
-    res.json({ output: result });
+    // Return JSON with gptOutput field for client side
+    res.json({ gptOutput: result.gptOutput });
   } catch (err) {
     res.status(500).json({ error: "An error occurred: " + err.message });
   }
 });
+
 
 app.listen(port, () => {
   console.log(`App running on http://localhost:${port}`);
