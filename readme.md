@@ -1,3 +1,10 @@
+
+
+
+
+
+<img width="1840" alt="Screenshot 2023-05-07 at 3 29 43 PM" src="https://github.com/nschlaepfer/SmartGPT/assets/44988633/8b6d6be6-85a6-4baa-954e-14211df0a230">
+
 # SmartGPT: Enhancing Text Generation with Dynamic Prompting
 
 SmartGPT is a Node.js-based tool that introduces a dynamic prompting system to the world of AI-driven text generation. Informed by 'AI Explained' on YouTube, it generates multiple responses to a given prompt and evaluates their quality, thereby facilitating the creation of improved and more relevant AI responses.
