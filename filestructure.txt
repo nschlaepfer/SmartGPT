@@ -1,8 +1,21 @@
 .
-├── chat-bot-interface
-│   ├── public
-│   └── src
-├── file structure
+.
+├── TreeOfThought
+│   ├── TreeOfThought.js
+│   ├── TreeOfThought.md
+│   ├── log.txt
+│   ├── server.js
+│   ├── thoughtNode.test.js
+│   └── views
+│       ├── index.ejs
+│       ├── result.ejs
+│       └── styles.css
+├── congressGPT
+│   ├── congressGPT.js
+│   ├── congressGPT.py
+│   └── congressReadme.md
+├── features.md
+├── filestructure.txt
 ├── old outputs
 │   ├── 1683601522976.txt
 │   ├── 1683602952536.txt
@@ -13,6 +26,8 @@
 │   └── You_have_been_asked_to_1683605111732.txt
 ├── package-lock.json
 ├── package.json
+├── public
+│   └── styles.css
 ├── readme.md
 ├── script.js
 ├── server.js
@@ -22,4 +37,4 @@
     ├── output.ejs
     └── styles.css
 
-6 directories, 17 files
+7 directories, 30 files

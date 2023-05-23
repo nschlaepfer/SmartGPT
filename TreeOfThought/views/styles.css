@@ -78,3 +78,11 @@ input:focus {
     border-radius: 5px;
     transition: width 0.3s ease-in-out;
 }
+.output-container {
+    border: 1px solid #000;
+    padding: 10px;
+    margin: 10px;
+    width: 80%;
+    height: auto;
+    overflow: auto;
+}

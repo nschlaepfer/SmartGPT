@@ -1,60 +1,136 @@
-# SmartGPT
+# SmartGPT: Enhancing Text Generation with Dynamic Prompting
 
-<img width="864" alt="Screenshot 2023-05-15 at 11 15 28 AM" src="https://github.com/nschlaepfer/SmartGPT/assets/44988633/9e345708-1e87-4846-ac26-7e9d7cdc9f02">
+SmartGPT is a Node.js-based tool that introduces a dynamic prompting system to the world of AI-driven text generation. Informed by 'AI Explained' on YouTube, it generates multiple responses to a given prompt and evaluates their quality, thereby facilitating the creation of improved and more relevant AI responses.
 
+## Why SmartGPT?
 
+This project emerged from a desire to explore the vast capabilities of the OpenAI API and ChatGPT API in creating intelligent, interactive applications. Inspired by the paper 'Tree of Thoughts: Deliberate Problem Solving with Large Language Models', it also represents a foray into the domain of deliberate problem solving with large language models. With SmartGPT, the aim is to generate high-quality text responses that excel in terms of relevance, coherence, and accuracy.
 
-SmartGPT is a Node.js script implementation of a dynamic prompting system, inspired by [AI Explained](https://www.youtube.com/@ai-explained-) on YouTube. This tool generates multiple responses to a prompt and evaluates their quality, which can be particularly useful for improving AI-driven text generation. Check out the original video tutorial [here](https://www.youtube.com/watch?v=wVzuvf9D9BU).
+## Getting Started
 
-## Prerequisites
+### Prerequisites
 
-- Node.js installed on your system. Download it from [here](https://nodejs.org/en/download/).
-- An OpenAI API key. Register on the [OpenAI platform](https://beta.openai.com/signup/) to obtain one.
+To get SmartGPT up and running, you will need:
 
-## Installation
+1. Node.js installed on your system. You can download it [here](https://nodejs.org/).
+
+2. An OpenAI API key. To obtain one, register on the [OpenAI platform](https://www.openai.com/).
+
+### Installation Steps
+
+Follow these steps to install SmartGPT:
 
 1. Clone this repository or download the source files.
 
-2. Navigate to the directory containing the `smartgpt.js` file, then run the following command to install necessary dependencies:
-
-   ```bash
+2. Navigate to the directory containing the `smartgpt.js` file. Run the following command to install the necessary dependencies:
+   
+   ```
    npm install
    ```
-
-3. Make a copy of the `.example.env` file in the same directory as `smartgpt.js` and rename it to `.env`.
+   
+3. Make a copy of the `.example.env` file in the same directory as `smartgpt.js`, and rename it to `.env`.
 
 4. Open the `.env` file and replace `your_api_key_here` with your OpenAI API key.
 
 ## Usage
 
-To run the script, type the following command:
+To get SmartGPT running, enter the following command:
 
-```bash
+```
 node server
 ```
 
-Upon running, you will be prompted to enter a number. This number specifies how many response options the program will generate and evaluate. Although the number of responses can technically be any positive integer, the effectiveness of the evaluation may vary for numbers beyond 3, depending on the complexity of the prompt and topic.
+Once running, you will be prompted to input a number, specifying how many response options the program should generate and evaluate. While this number could be any positive integer, the efficiency of the evaluation may vary for numbers greater than 3, depending on the complexity of the prompt and topic.
 
-## Usage NOTE
-GPT-4 is highly recomeneded, it will cost more than GPT-3.5 but produce much better results
+The generated outputs are logged to the console, and the entire conversations are saved in the `output` folder for future reference.
 
+## Core Components and Usage Reference
 
- OUPUT IS NOT WORKING ON FRONT END. YOU WILL FIND THE FILE PATH TO THE OUPUT/
-FIX COMING SOON. 
-The outputs are logged to the console, and the entire conversations are saved in the output folder for later review.
+### smartgpt.js
 
-## Code Explanation
+This is the main script file. It interfaces with the OpenAI API and ChatGPT API to generate and evaluate responses. The following points detail the sequence of operations:
 
-The code is structured in a way that it interacts with the OpenAI API to generate and evaluate responses to a given prompt. Here's a brief explanation of the flow:
+1. The script verifies the presence of the API key in the `.env` file. If it doesn't exist, an error is thrown.
 
-1. The script first verifies if the API key exists in the `.env` file. If it doesn't, an error is thrown.
-2. A progress bar is initialized to provide visual feedback during the operation.
-3. The script generates a certain number of responses to the prompt (the number is specified by the user at runtime).
-4. Once all responses are received, the script prepares a 'researcher' prompt that asks for a critical review of all answer options.
-5. The researcher's response is then sent to the API.
-6. A 'resolver' prompt is generated, which tasks the AI with identifying the best answer and improving upon it.
-7. The resolver's response is received, and the final output is compiled and saved in the `output` folder in the project's directory.
+2. A progress bar is initialized to provide real-time visual feedback.
 
-## Acknowledgements
+3. The script generates a specific number of responses to the prompt (specified by the user at runtime).
 
-This project was inspired by the content provided by [AI Explained](https://www.youtube.com/@ai-explained-). Be sure to check them out for more AI-related content.
+4. Once all responses are received, a 'researcher' prompt asking for critical review of all answer options is prepared.
+
+5. The researcher’s response is sent to the API.
+
+6. A ‘resolver’ prompt is generated, which instructs the AI to identify the best answer and refine it.
+
+7. The resolver’s response is received, and the final output is compiled and saved in the `output` folder.
+
+### Other Script Files
+
+`congressGPT.js` and `TreeOfThought.js` employ different strategies for deliberate problem solving with large language models.
+
+- `congressGPT.js` uses ChatGPT API to simulate different roles (researcher, builder, refiner, deliverer) that collaborate to find and enhance the best answer option.
+
+- `TreeOfThought.js` creates a tree-like structure of thoughts branching from an initial prompt. Each thought node is evaluated for its quality and state.
+
+For more details on these scripts, please
+
+ refer to their respective files or read the provided comments.
+
+## Citation
+
+Please cite this project as follows if used in your research or work:
+
+```bibtex
+@misc{SmartGPT,
+  author = {Nicolas Schlaepfer},
+  title = {SmartGPT: A Dynamic Prompting System},
+  year = {2022},
+  publisher = {GitHub},
+  journal = {GitHub repository},
+  howpublished = {\url{https://github.com/nschlaepfer/SmartGPT}},
+}
+```
+
+## Resources
+
+- [OpenAI API Documentation](https://platform.openai.com/docs/)
+- [ChatGPT API Documentation](https://platform.openai.com/docs/guides/chat)
+- 'Tree of Thoughts: Deliberate Problem Solving with Large Language Models'
+
+## Project Structure
+
+The main file for this project is `smartgpt.js`. Other important files and directories are outlined below:
+
+```
+.
+├── TreeOfThought
+│   ├── TreeOfThought.js
+│   ├── TreeOfThought.md
+│   ├── log.txt
+│   ├── server.js
+│   ├── thoughtNode.test.js
+│   └── views
+│       ├── index.ejs
+│       ├── result.ejs
+│       └── styles.css
+├── congressGPT
+│   ├── congressGPT.js
+│   ├── congressGPT.py
+│   └── congressReadme.md
+├── features.md
+├── filestructure.txt
+├── old outputs
+│   ├── various generated .txt files
+├── package-lock.json
+├── package.json
+├── public
+│   └── styles.css
+├── readme.md
+├── script.js
+├── server.js
+├── smartgpt.js
+└── views
+    ├── index.ejs
+    ├── output.ejs
+    └── styles.css
+```
