@@ -4,10 +4,17 @@ import { main } from './smartgpt.js';
 import fs from 'fs/promises';
 import path from 'path';
 import session from 'express-session';
-//const marked = require('marked');
 
 const app = express();
 const port = 3005;
+
+// Initialize session
+app.use(session({
+  secret: 'your_secret_key', // replace with a secret key of your choice
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: false } // if you're using HTTPS, set this to true
+}));
 
 // Add this line before your routes
 app.use(express.static('public')); // or wherever your static files are located
@@ -55,14 +62,7 @@ app.post('/run', async (req, res) => {
   }
 });
 
-app.use(session({
-  secret: 'your_secret_key', // replace with a secret key of your choice
-  resave: false,
-  saveUninitialized: true,
-  cookie: { secure: false } // if you're using HTTPS, set this to true
-}));
-
-
 app.listen(port, () => {
   console.log(`App running on http://localhost:${port}`);
 });
+
