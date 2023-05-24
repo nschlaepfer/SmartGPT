@@ -28,7 +28,14 @@
             color: #1a73e8;
             text-align: center;
             font-weight: 700;
+            font-size: 36px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
         }
+        
 
         form {
             padding: 2em;
@@ -194,6 +201,47 @@
             font-size: 0.85em;
             color: #1a73e8;
         }
+
+        .btn-submit {
+            margin-right: 10px;
+        }
+
+        .settings-container {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .btn-stop {
+            flex-basis: 30%;
+            margin-left: 10px;
+        }
+
+        textarea#prompt {
+            resize: vertical;
+        }
+
+        .highlighted-text {
+            background-color: #1a73e8;
+            color: #eee;
+        }
+
+        .mode-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+
+        .mode-label {
+            cursor: pointer;
+            transition: background-color 0.2s;
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+
+        .mode-label.selected {
+            background-color: #1a73e8;
+            color: #eee;
+        }
     </style>
 </head>
 
@@ -205,8 +253,8 @@
                 <legend>ChatGPT Parameters</legend>
                 <div class="form-group">
                     <label for="prompt">Prompt:</label>
-                    <input type="text" class="form-control" id="prompt" name="prompt" required
-                        aria-describedby="promptHelp">
+                    <textarea class="form-control" id="prompt" name="prompt" required
+                        aria-describedby="promptHelp"></textarea>
                     <small id="promptHelp" class="form-text text-muted">Please enter a prompt. For example, 'Make a
                         presentation on the solar system.'</small>
                 </div>
@@ -238,21 +286,31 @@
                         </div>
                     </div>
                     <div class="form-group d-flex align-items-center">
-                        <div style="font-size: 50px; margin-right: 10px;">🧠</div>
+                        <div id="modeEmoji" style="font-size: 50px; margin-right: 10px;">🔬</div>
                         <div>
                             <label for="model">Mode (COMMING SOON):</label>
                             <div class="slider-container">
                                 <input type="range" min="1" max="3" value="1" class="slider" id="model" name="model">
                             </div>
-                            <small id="modelHelp" class="form-text text-muted">1=SmartGPT, 2=CongressGPT, 3=Tree Of
-                                Thought</small>
+                            <div class="mode-labels">
+                                <span class="mode-label selected" data-mode="1">SmartGPT</span>
+                                <span class="mode-label" data-mode="2">CongressGPT</span>
+                                <span class="mode-label" data-mode="3">Tree Of Thought</span>
+                            </div>
                         </div>
                     </div>
+
+
+
                 </div>
             </fieldset>
-            <button type="submit" class="btn">Submit</button>
-            <button type="button" id="stopButton" class="btn" disabled>Stop Generation</button>
+            <div class="btn-group">
+                <button type="submit" class="btn btn-submit">Start</button>
+                <button type="button" id="stopButton" class="btn btn-stop" disabled>Stop Generation</button>
+                <!-- In your HTML template -->
+                <a href="/output/outputFileName.txt" target="_blank">Output File</a>
 
+            </div>
         </form>
         <!-- Output and logs container -->
         <section class="output-container" id="output">
@@ -261,13 +319,6 @@
             <textarea id="outputText" readonly></textarea>
         </section>
     </main>
-
-
-
-
-
-
-
 
     <!-- Adding Footer -->
     <footer class="text-center p-3 mt-2" style="background-color: #202124; color: #eee;">
@@ -293,21 +344,39 @@
             if (apiKey) {
                 $('#apiKey').val(apiKey);
             }
-    
-            // Update the model value display on slider change
+
+
             $('#model').on('input', function () {
-                $('#modelValue').text($(this).val());
+                var selectedMode = $(this).val();
+                $('.mode-label').removeClass('selected');
+                $('.mode-label[data-mode="' + selectedMode + '"]').addClass('selected');
+
+                // Update the mode emoji based on the selected mode
+                var modeEmoji = '🔬';
+                if (selectedMode === '2') {
+                    modeEmoji = '🏛️'; // CongressGPT
+                } else if (selectedMode === '3') {
+                    modeEmoji = '🌳'; // Tree Of Thought
+                }
+                $('#modeEmoji').text(modeEmoji);
             });
-    
+
+            $('.mode-label').on('click', function () {
+                var selectedMode = $(this).data('mode');
+                $('#model').val(selectedMode).trigger('input');
+            });
+
+
+
             $('form').on('submit', function (event) {
                 event.preventDefault();
-    
+
                 var apiKey = $('#apiKey').val();
                 localStorage.setItem('apiKey', apiKey);
-    
+
                 // Enable the stop generation button
                 $('#stopButton').prop('disabled', false);
-    
+
                 $.ajax({
                     type: 'POST',
                     url: '/run',
@@ -320,9 +389,9 @@
                     }
                 });
             });
-    
+
             // Stop Generation button functionality
-            $('#stopButton').on('click', function() {
+            $('#stopButton').on('click', function () {
                 // Here you should have your code to stop the generation process
                 // This code is highly dependent on your current implementation
                 // and could require server-side adjustments as well.
@@ -330,9 +399,6 @@
             });
         });
     </script>
-    
-
-
 </body>
 
 </html>

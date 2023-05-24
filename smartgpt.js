@@ -15,7 +15,7 @@ export const main = async (prompt, numAsks, apiKey = process.env.API_KEY || mini
     }
 
     const NUM_ASKS = Number(numAsks);
-    
+
     const progressBar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);
     progressBar.start(NUM_ASKS, 0);
 
@@ -63,27 +63,26 @@ export const main = async (prompt, numAsks, apiKey = process.env.API_KEY || mini
     console.log("Resolver Response received, compiling output...");
 
     const gptOutput = [
-    "# Prompt",
-    "", prompt, "",
-    "# Researcher Prompt",
-    "", researcherPrompt, "",
-    "# Researcher Response",
-    "", researcherResponse.text, "",
-    "# Resolver Prompt",
-    "", resolverPrompt, "",
-    "# Resolver Response",
-    "", resolverResponse.text, ""
+        "# Prompt",
+        "", prompt, "",
+        "# Researcher Prompt",
+        "", researcherPrompt, "",
+        "# Researcher Response",
+        "", researcherResponse.text, "",
+        "# Resolver Prompt",
+        "", resolverPrompt, "",
+        "# Resolver Response",
+        "", resolverResponse.text, ""
     ].join("\n\n");
 
     const fileName = `${Date.now()}.txt`;
     const outputDir = path.join(path.dirname(new URL(import.meta.url).pathname), 'output');
-    
     const outputPath = path.join(outputDir, fileName);
 
     // Write output to a file
     try {
         await fs.mkdir(outputDir, { recursive: true });
-        await fs.writeFile(outputPath,gptOutput);
+        await fs.writeFile(outputPath, gptOutput);
         console.log(`Output was successfully saved to ${outputPath}`);
     } catch (err) {
         console.error("An error occurred while writing the output to a file: ", err);
@@ -91,12 +90,13 @@ export const main = async (prompt, numAsks, apiKey = process.env.API_KEY || mini
 
     console.log("Script completed successfully!");
 
+    const outputURL = `/output/${fileName}`;
+
     return {
         prompt: prompt,
         numAsks: NUM_ASKS,
         researcherResponse: researcherResponse.text,
         resolverResponse: resolverResponse.text,
-      };
-      
+        outputURL: outputURL
+    };
 };
-
