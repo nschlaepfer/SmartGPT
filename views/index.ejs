@@ -13,19 +13,19 @@
             padding: 0;
             background-color: #343a40;
             color: #eee;
-        }
-
-        .container {
-
+          }
+          
+          .container {
             max-width: 800px;
             margin: 0 auto;
             padding: 30px;
             background-color: #202124;
             border-radius: 8px;
-        }
-
-        h1 {
-            color: #1a73e8;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+          }
+          
+          h1 {
+            color: #ffffff;
             text-align: center;
             font-weight: 700;
             font-size: 36px;
@@ -34,36 +34,35 @@
             margin-top: 20px;
             margin-bottom: 20px;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-        }
-        
-
-        form {
+          }
+          
+          form {
             padding: 2em;
             border-radius: 5px;
             background: #202124;
             color: #eee;
-        }
-
-        .form-control,
-        .btn {
+          }
+          
+          .form-control,
+          .btn {
             background: #262626;
             color: #eee;
             border-color: #5F6368;
-        }
-
-        .form-control:focus,
-        .btn:focus {
+          }
+          
+          .form-control:focus,
+          .btn:focus {
             border-color: #1a73e8;
             box-shadow: 0 0 0 0.2rem rgba(26, 115, 232, 0.25);
-        }
-
-        .form-label {
+          }
+          
+          .form-label {
             color: #eee;
             font-size: 16px;
             font-weight: bold;
-        }
-
-        .btn {
+          }
+          
+          .btn {
             background: linear-gradient(90deg, #1a73e8 0%, #134db2 100%);
             border: none;
             padding: 10px 20px;
@@ -75,17 +74,45 @@
             letter-spacing: 1px;
             font-weight: 600;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-        }
+          }
 
-        button.btn {
+          .btn-submit {
+            margin-right: 10px;
+            padding: 5px 10px;
+            font-size: 12px;
+            line-height: 1;
+            height: 100px;
+          }
+          
+          .btn-submit:hover {
+            color: #3cb371;
+          }
+          
+          
+          button.btn {
             margin-top: 10px;
-        }
-
-        .btn:hover {
+          }
+          
+          .btn:hover {
             background: linear-gradient(90deg, #134db2 0%, #1a73e8 100%);
-        }
+          }
 
-        .output-container {
+          .btn-stop {
+            flex-basis: 30%;
+            margin-left: 10px;
+            padding: 5px 10px;
+            font-size: 12px;
+            line-height: 1;
+            height: 100px;
+          }
+          
+          
+          .btn-stop:hover {
+            color: #ff7f7f;
+          }
+          
+          
+          .output-container {
             margin-top: 2em;
             background-color: #1a1a1a;
             border: 1px solid #5F6368;
@@ -93,9 +120,9 @@
             border-radius: 5px;
             overflow-y: auto;
             color: #eee;
-        }
-
-        textarea#outputText {
+          }
+          
+          textarea#outputText {
             width: 100%;
             height: 200px;
             background: #313639;
@@ -103,58 +130,110 @@
             color: #eee;
             font-size: 14px;
             line-height: 1.4;
-        }
-
-        footer {
+          }
+          
+          footer {
             background-color: #262626;
             color: #eee;
             padding: 15px 0;
             text-align: center;
-        }
-
-        footer a {
+          }
+          
+          footer a {
             color: #1a73e8;
             margin: 0 10px;
             text-decoration: none;
             transition: color 0.2s;
-        }
-
-        footer a:hover {
+          }
+          
+          footer a:hover {
             color: #134db2;
-        }
-
-        /* Additional Styles */
-        .container {
+          }
+          
+          /* Additional Styles */
+          .container {
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-        }
-
-        legend {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 20px;
-        }
-
-        .form-group {
+          }
+          
+          .file-icon {
+            font-size: 16px;
+            margin-right: 5px;
+          }
+          
+          .form-check {
+            margin-bottom: 10px;
+          }
+          
+          .form-check-label i {
+            font-size: 0.85em;
+            color: #1a73e8;
+          }
+          
+          .form-group {
             margin-bottom: 25px;
-        }
-
-        .form-group div {
+          }
+          
+          .form-group div {
             display: flex;
             flex-direction: column;
             justify-content: center;
-        }
-
-
-        .radio-option label {
+          }
+          
+          .highlighted-text {
+            background-color: #1a73e8;
+            color: #eee;
+          }
+          
+          .mode-label {
+            cursor: pointer;
+            transition: background-color 0.2s;
+            padding: 5px 10px;
+            border-radius: 5px;
+          }
+          
+          .mode-label.selected {
+            background-color: #1a73e8;
+            color: #eee;
+          }
+          
+          .mode-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+          }
+          
+          .output-link {
+            text-align: center;
+            margin-top: 10px;
+            margin-left: 10px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            padding: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+          }
+          
+          .output-link a {
+            color: #1a73e8;
+            text-decoration: none;
+            transition: color 0.2s;
+            display: inline-flex;
+            align-items: center;
+            margin-left: 5px;
+          }
+          
+          
+          .radio-option {
             display: flex;
             align-items: center;
-        }
-
-        .slider-container {
-            position: relative;
-        }
-
-        .slider {
+          }
+          
+          .settings-container {
+            display: flex;
+            justify-content: space-between;
+          }
+          
+          .slider {
             width: 100%;
             height: 25px;
             background-color: #5F6368;
@@ -163,13 +242,17 @@
             opacity: 0.7;
             transition: opacity 0.2s;
             border-radius: 12.5px;
-        }
-
-        .slider:hover {
+          }
+          
+          .slider-container {
+            position: relative;
+          }
+          
+          .slider:hover {
             opacity: 1;
-        }
-
-        .slider::-webkit-slider-thumb {
+          }
+          
+          .slider::-webkit-slider-thumb {
             appearance: none;
             width: 25px;
             height: 25px;
@@ -177,71 +260,28 @@
             cursor: pointer;
             border-radius: 50%;
             box-shadow: 0 0 0 5px #202124;
-        }
-
-        .slider::-moz-range-thumb {
+          }
+          
+          .slider::-moz-range-thumb {
             width: 25px;
             height: 25px;
             background-color: #1a73e8;
             cursor: pointer;
             border-radius: 50%;
             box-shadow: 0 0 0 5px #202124;
-        }
-
-        .radio-option {
-            display: flex;
-            align-items: center;
-        }
-
-        .form-check {
-            margin-bottom: 10px;
-        }
-
-        .form-check-label i {
-            font-size: 0.85em;
-            color: #1a73e8;
-        }
-
-        .btn-submit {
-            margin-right: 10px;
-        }
-
-        .settings-container {
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .btn-stop {
-            flex-basis: 30%;
-            margin-left: 10px;
-        }
-
-        textarea#prompt {
+          }
+          
+          textarea#prompt {
             resize: vertical;
-        }
-
-        .highlighted-text {
-            background-color: #1a73e8;
-            color: #eee;
-        }
-
-        .mode-labels {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 10px;
-        }
-
-        .mode-label {
-            cursor: pointer;
-            transition: background-color 0.2s;
-            padding: 5px 10px;
-            border-radius: 5px;
-        }
-
-        .mode-label.selected {
-            background-color: #1a73e8;
-            color: #eee;
-        }
+          }
+          
+          legend {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 20px;
+          }
+          
+        
     </style>
 </head>
 
@@ -255,8 +295,7 @@
                     <label for="prompt">Prompt:</label>
                     <textarea class="form-control" id="prompt" name="prompt" required
                         aria-describedby="promptHelp"></textarea>
-                    <small id="promptHelp" class="form-text text-muted">Please enter a prompt. For example, 'Make a
-                        presentation on the solar system.'</small>
+                    <small id="promptHelp" class="form-text text-muted">Please enter a prompt. For example, 'Make a compression system using emojis to shorten text.'</small>
                 </div>
                 <div class="form-group">
                     <label for="numAsks">Number of Questions Allowed:</label>
@@ -307,9 +346,13 @@
             <div class="btn-group">
                 <button type="submit" class="btn btn-submit">Start</button>
                 <button type="button" id="stopButton" class="btn btn-stop" disabled>Stop Generation</button>
-                <!-- In your HTML template -->
-                <a href="/output/outputFileName.txt" target="_blank">Output File</a>
-
+                <div class="output-link">
+                    <span class="file-icon" role="img" aria-label="File">📄</span>
+                    <a href="/output/outputFileName.txt" target="_blank">Output File</a>
+                  </div>
+                  
+                  
+                
             </div>
         </form>
         <!-- Output and logs container -->
