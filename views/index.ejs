@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,48 +14,48 @@
             background-color: #343a40;
             color: #eee;
         }
-    
+
         .container {
-            
+
             max-width: 800px;
             margin: 0 auto;
             padding: 30px;
             background-color: #202124;
             border-radius: 8px;
         }
-    
+
         h1 {
             color: #1a73e8;
             text-align: center;
-            font-weight: 500;
+            font-weight: 700;
         }
-    
+
         form {
             padding: 2em;
             border-radius: 5px;
             background: #202124;
             color: #eee;
         }
-    
+
         .form-control,
         .btn {
             background: #262626;
             color: #eee;
             border-color: #5F6368;
         }
-    
+
         .form-control:focus,
         .btn:focus {
             border-color: #1a73e8;
             box-shadow: 0 0 0 0.2rem rgba(26, 115, 232, 0.25);
         }
-    
+
         .form-label {
             color: #eee;
             font-size: 16px;
             font-weight: bold;
         }
-    
+
         .btn {
             background: linear-gradient(90deg, #1a73e8 0%, #134db2 100%);
             border: none;
@@ -68,15 +69,15 @@
             font-weight: 600;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         }
-    
+
         button.btn {
             margin-top: 10px;
         }
-    
+
         .btn:hover {
             background: linear-gradient(90deg, #134db2 0%, #1a73e8 100%);
         }
-    
+
         .output-container {
             margin-top: 2em;
             background-color: #1a1a1a;
@@ -86,7 +87,7 @@
             overflow-y: auto;
             color: #eee;
         }
-    
+
         textarea#outputText {
             width: 100%;
             height: 200px;
@@ -96,36 +97,36 @@
             font-size: 14px;
             line-height: 1.4;
         }
-    
+
         footer {
             background-color: #262626;
             color: #eee;
             padding: 15px 0;
             text-align: center;
         }
-    
+
         footer a {
             color: #1a73e8;
             margin: 0 10px;
             text-decoration: none;
             transition: color 0.2s;
         }
-    
+
         footer a:hover {
             color: #134db2;
         }
-    
+
         /* Additional Styles */
         .container {
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
         }
-    
+
         legend {
             font-size: 18px;
             font-weight: bold;
             margin-bottom: 20px;
         }
-    
+
         .form-group {
             margin-bottom: 25px;
         }
@@ -135,17 +136,17 @@
             flex-direction: column;
             justify-content: center;
         }
-        
-    
+
+
         .radio-option label {
             display: flex;
             align-items: center;
         }
-    
+
         .slider-container {
             position: relative;
         }
-    
+
         .slider {
             width: 100%;
             height: 25px;
@@ -156,11 +157,11 @@
             transition: opacity 0.2s;
             border-radius: 12.5px;
         }
-    
+
         .slider:hover {
             opacity: 1;
         }
-    
+
         .slider::-webkit-slider-thumb {
             appearance: none;
             width: 25px;
@@ -170,7 +171,7 @@
             border-radius: 50%;
             box-shadow: 0 0 0 5px #202124;
         }
-    
+
         .slider::-moz-range-thumb {
             width: 25px;
             height: 25px;
@@ -188,17 +189,12 @@
         .form-check {
             margin-bottom: 10px;
         }
-        
+
         .form-check-label i {
             font-size: 0.85em;
             color: #1a73e8;
         }
-        
-        
     </style>
-    
-    
-    
 </head>
 
 <body>
@@ -229,10 +225,12 @@
                 </div>
                 <div class="settings-container d-flex justify-content-between">
                     <div class="form-group d-flex align-items-center">
-                        <img src="https://cdn.cdnlogo.com/logos/o/38/openai.svg" alt="OpenAI logo" style="width: 50px; height: 50px; margin-right: 10px;">
+                        <img src="https://cdn.cdnlogo.com/logos/o/38/openai.svg" alt="OpenAI logo"
+                            style="width: 50px; height: 50px; margin-right: 10px;">
                         <div>
                             <label for="gptVersion">GPT Version:</label>
-                            <select class="form-control" id="gptVersion" name="gptVersion" aria-describedby="gptVersionHelp">
+                            <select class="form-control" id="gptVersion" name="gptVersion"
+                                aria-describedby="gptVersionHelp">
                                 <option value="gpt-4" selected>GPT-4</option>
                                 <option value="gpt-3.5-turbo">GPT-3.5-turbo</option>
                             </select>
@@ -253,6 +251,8 @@
                 </div>
             </fieldset>
             <button type="submit" class="btn">Submit</button>
+            <button type="button" id="stopButton" class="btn" disabled>Stop Generation</button>
+
         </form>
         <!-- Output and logs container -->
         <section class="output-container" id="output">
@@ -261,13 +261,13 @@
             <textarea id="outputText" readonly></textarea>
         </section>
     </main>
-    
-    
-    
-    
-    
-    
-    
+
+
+
+
+
+
+
 
     <!-- Adding Footer -->
     <footer class="text-center p-3 mt-2" style="background-color: #202124; color: #eee;">
@@ -293,18 +293,21 @@
             if (apiKey) {
                 $('#apiKey').val(apiKey);
             }
-
+    
             // Update the model value display on slider change
             $('#model').on('input', function () {
                 $('#modelValue').text($(this).val());
             });
-
+    
             $('form').on('submit', function (event) {
                 event.preventDefault();
-
+    
                 var apiKey = $('#apiKey').val();
                 localStorage.setItem('apiKey', apiKey);
-
+    
+                // Enable the stop generation button
+                $('#stopButton').prop('disabled', false);
+    
                 $.ajax({
                     type: 'POST',
                     url: '/run',
@@ -317,8 +320,17 @@
                     }
                 });
             });
+    
+            // Stop Generation button functionality
+            $('#stopButton').on('click', function() {
+                // Here you should have your code to stop the generation process
+                // This code is highly dependent on your current implementation
+                // and could require server-side adjustments as well.
+                console.log("Stop button clicked. Implement generation stopping logic here.");
+            });
         });
     </script>
+    
 
 
 </body>
