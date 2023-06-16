@@ -19,6 +19,7 @@
     "express-session": "^1.17.3",
     "marked": "^5.0.2",
     "minimist": "^1.2.8",
+    "openai": "^3.3.0",
     "winston": "^3.8.2"
   },
   "type": "module"
