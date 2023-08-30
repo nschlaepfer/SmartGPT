@@ -297,7 +297,7 @@
                     <label for="prompt">Prompt:</label>
                     <textarea class="form-control" id="prompt" name="prompt" required
                         aria-describedby="promptHelp"></textarea>
-                    <small id="promptHelp" class="form-text text-muted">Please enter a prompt. For example, 'Create a python program that showcases how dynamic programing works, includes comments and explanations. This is for educational purposes. '</small>
+                    <small id="promptHelp" class="form-text text-muted">Please enter a prompt. For example, 'Suppose I have a cabbage, a goat and a lion, and I need to get them across a river. I have a boat that can only carry myself and a single other item. I am not allowed to leave the cabbage and lion alone together, and I am not allowed to leave the lion and goat alone together. How can I safely get all three across?'</small>
                 </div>
                 <div class="form-group">
                     <label for="numAsks">Number of Questions Allowed:</label>
@@ -337,6 +337,7 @@
                                 <span class="mode-label selected" data-mode="1">SmartGPT</span>
                                 <span class="mode-label" data-mode="2">CongressGPT</span>
                                 <span class="mode-label" data-mode="3">Tree Of Thought</span>
+                                <span class="mode-label" data-mode="4">DevGPT</span>
                             </div>
                         </div>
                     </div>
@@ -428,7 +429,8 @@
                     data: $(this).serialize(),
                     success: function (response) {
                         var gptOutput = md.render(response.gptOutput);
-                        $('#outputText').html(gptOutput);
+                        var finalAnswer = md.render(response.finalAnswer); // Assuming finalAnswer is also in Markdown
+                        $('#outputText').html(gptOutput + "<br/>" + "Final Answer: " + finalAnswer);
                     },
                     error: function (error) {
                         console.log(error);

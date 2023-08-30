@@ -1,3 +1,5 @@
+//server.js
+
 import express from 'express';
 import bodyParser from 'body-parser';
 import { main } from './smartgpt.js';
@@ -19,6 +21,10 @@ app.use(session({
 
 // Add this line before your routes
 app.use(express.static('public')); // or wherever your static files are located
+
+//addd
+app.use(bodyParser.json());
+
 
 app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -56,8 +62,9 @@ app.post('/run', async (req, res) => {
       console.error("An error occurred while writing the output to a file: ", err);
     }
 
+    //THIS DISPLAYS RESULTS
     // Return JSON with gptOutput field for client side
-    res.json({ gptOutput: result.researcherResponse});
+    res.json({ gptOutput: result.researcherResponse, finalAnswer: result.finalAnswer});
   } catch (err) {
     res.status(500).json({ error: "An error occurred: " + err.message });
   }

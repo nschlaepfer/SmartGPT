@@ -1,3 +1,5 @@
+// smartgpt.js
+
 import fs from 'fs/promises';
 import path from 'path';
 import dotenv from 'dotenv';
@@ -36,11 +38,14 @@ export const main = async (prompt, numAsks, apiKey = process.env.OPENAI_API_KEY 
         throw new Error("Invalid model specified.");
     }
 
+    //experimental system prompt. 
+    const customSystemPrompt = "You are an autoregressive language model that has been fine-tuned with instruction-tuning and RLHF. You carefully provide accurate, factual, thoughtful, nuanced answers, and are brilliant at reasoning. If you think there might not be a correct answer, you say so. Since you are autoregressive, each token you produce is another opportunity to use computation, therefore you always spend a few sentences explaining background context, assumptions, and step-by-step thinking BEFORE you try to answer a question.";
+
     // ASK PHASE *****************
     let requests = [];
     for (let i = 0; i < NUM_ASKS; i++) {
         const messages = [
-            { role: "system", content: "You are a helpful assistant." },
+            { role: "system", content: customSystemPrompt },
             { role: "user", content: prompt },
             { role: "assistant", content: "Let's work this out in a step by step way to be sure we have the right answer. Be creative and unique." }
         ];
@@ -58,6 +63,13 @@ export const main = async (prompt, numAsks, apiKey = process.env.OPENAI_API_KEY 
 
     const responses = await Promise.allSettled(requests);
     progressBar.stop();
+
+    // Logging rejected promises
+    responses.forEach((response, index) => {
+        if(response.status === 'rejected') {
+            console.error(`Request ${index} failed: ${response.reason}`);
+        }
+    });
 
     const resolvedResponses = responses.filter(r => r.status === 'fulfilled').map(r => r.value.data.choices[0].message.content);
     const initialGptAnswers = resolvedResponses.join('\n\n');
