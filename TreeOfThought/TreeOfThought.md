@@ -41,7 +41,7 @@ main function: This is the main entry point of the script. It checks for the pre
 1. Create a `.env` file in the root directory of the project and add your OpenAI API key:
 
     ```env
-    API_KEY=your_openai_api_key
+    OPENAI_API_KEY=your_openai_api_key
     ```
 
 2. Run the script with the following command:

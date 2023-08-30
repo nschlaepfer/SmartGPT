@@ -7,7 +7,7 @@ import cliProgress from 'cli-progress';
 
 dotenv.config();
 
-export const main = async (prompt, numAsks, apiKey = process.env.API_KEY || minimist(process.argv.slice(2)).apiKey, model = "gpt-3.5-turbo-16k") => {
+export const main = async (prompt, numAsks, apiKey = process.env.OPENAI_API_KEY || minimist(process.argv.slice(2)).apiKey, model = "gpt-3.5-turbo-16k") => {
     console.log("Starting script...");
 
     if (!apiKey) {
@@ -170,7 +170,7 @@ export const main = async (prompt, numAsks, apiKey = process.env.API_KEY || mini
 //     }
 // };
 
-// export const main = async (prompt, numAsks, apiKey = process.env.API_KEY || minimist(process.argv.slice(2)).apiKey) => {
+// export const main = async (prompt, numAsks, apiKey = process.env.OPENAI_API_KEY || minimist(process.argv.slice(2)).apiKey) => {
 //     console.log("Starting script...");
 
 //     if (!apiKey) {
@@ -288,7 +288,7 @@ export const main = async (prompt, numAsks, apiKey = process.env.API_KEY || mini
 //     }
 // };
 
-// export const main = async (prompt, numAsks, apiKey = process.env.API_KEY || minimist(process.argv.slice(2)).apiKey) => {
+// export const main = async (prompt, numAsks, apiKey = process.env.OPENAI_API_KEY || minimist(process.argv.slice(2)).apiKey) => {
 //     console.log("Starting script...");
 
 //     if (!apiKey) {
@@ -370,7 +370,7 @@ export const main = async (prompt, numAsks, apiKey = process.env.API_KEY || mini
 
 // dotenv.config();
 
-// export const main = async (prompt, numAsks, apiKey = process.env.API_KEY || minimist(process.argv.slice(2)).apiKey, model = "gpt-3.5-turbo-16k") => {
+// export const main = async (prompt, numAsks, apiKey = process.env.OPENAI_API_KEY || minimist(process.argv.slice(2)).apiKey, model = "gpt-3.5-turbo-16k") => {
 //     console.log("Starting script...");
 
 //     if (!apiKey) {
@@ -503,7 +503,7 @@ export const main = async (prompt, numAsks, apiKey = process.env.API_KEY || mini
 
 // dotenv.config();
 
-// export const main = async (prompt, numAsks, apiKey = process.env.API_KEY || minimist(process.argv.slice(2)).apiKey, model = "gpt-4") => {
+// export const main = async (prompt, numAsks, apiKey = process.env.OPENAI_API_KEY || minimist(process.argv.slice(2)).apiKey, model = "gpt-4") => {
 //     console.log("Starting script...");
 
 //     if (!apiKey) {

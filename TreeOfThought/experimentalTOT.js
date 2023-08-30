@@ -30,7 +30,7 @@ var OpenAILanguageModel = AbstractLanguageModel.$extend({
   // Define the constructor
   __init__: function(api_key, strategy="cot", evaluation_strategy="value", api_base="", api_model="", enable_ReAct_prompting=true) {
     if (api_key == "" || api_key == null) {
-      api_key = process.env.OPENAI_API_KEY || "";
+      api_key = process.env.OPENAI_OPENAI_API_KEY || "";
       if (api_key != "") {
         openai.api_key = api_key;
       } else {
@@ -182,7 +182,7 @@ var GuidanceOpenAILanguageModel = GuidanceLanguageModel.$extend({
   // Define the constructor
   __init__: function(api_key, strategy="cot", evaluation_strategy="value", api_base="", api_model="") {
     if (api_key == "" || api_key == null) {
-      api_key = process.env.OPENAI_API_KEY || "";
+      api_key = process.env.OPENAI_OPENAI_API_KEY || "";
       if (api_key != "") {
         openai.api_key = api_key;
       } else {
