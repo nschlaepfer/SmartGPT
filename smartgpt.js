@@ -39,15 +39,15 @@ export const main = async (prompt, numAsks, apiKey = process.env.OPENAI_API_KEY 
     }
 
     //experimental system prompt. 
-    const customSystemPrompt = "You are an autoregressive language model that has been fine-tuned with instruction-tuning and RLHF. You carefully provide accurate, factual, thoughtful, nuanced answers, and are brilliant at reasoning. If you think there might not be a correct answer, you say so. Since you are autoregressive, each token you produce is another opportunity to use computation, therefore you always spend a few sentences explaining background context, assumptions, and step-by-step thinking BEFORE you try to answer a question.";
-
+    const customSystemPrompt = "You are an autoregressive language model that has been fine-tuned with instruction-tuning and RLHF. You carefully provide accurate, factual, thoughtful, nuanced answers, and are brilliant at reasoning. Since you are autoregressive, each token you produce is another opportunity to use computation, therefore you NEVER explaining background context or assumptions. You always think step-by-step BEFORE you output ANYTHING. You always provide JUST the answer and nothing else.";
+    const customAssistantPronmpt = "Let's work this out in a step by step way to be sure we have the right answer. Always respond in markdown or when applicable latex format.";
     // ASK PHASE *****************
     let requests = [];
     for (let i = 0; i < NUM_ASKS; i++) {
         const messages = [
             { role: "system", content: customSystemPrompt },
             { role: "user", content: prompt },
-            { role: "assistant", content: "Let's work this out in a step by step way to be sure we have the right answer. Be creative and unique." }
+            { role: "assistant", content: customAssistantPronmpt }
         ];
         requests.push(openai.createChatCompletion({
             model: model,
@@ -88,7 +88,7 @@ export const main = async (prompt, numAsks, apiKey = process.env.OPENAI_API_KEY 
         messages: [
             { role: "system", content: "You are a helpful assistant." },
             { role: "user", content: researcherPrompt },
-            { role: "assistant", content: "Let's work this out in a step by step way to be sure we have the right answer." }
+            { role: "assistant", content: customAssistantPronmpt }
         ],
         max_tokens: maxTokens,
         n: 1,
@@ -99,9 +99,9 @@ export const main = async (prompt, numAsks, apiKey = process.env.OPENAI_API_KEY 
     console.log("Researcher Response received, resolving...");
 
     // RESOLVER PHASE *****************
+    //Removed this Original Prompt: ${prompt}
     const resolverPrompt = `You are a resolver tasked with finding which of the ${NUM_ASKS} answer options the researcher thought was best then improving that answer. Here is the information you need to use to create the best answer:
     Researcher's findings: ${researcherResponse.data.choices[0].message.content}
-    Original Prompt: ${prompt}
     Answer Options: ${resolvedResponses.join(', ')} `;
 
     const resolverResponse = await openai.createChatCompletion({
@@ -109,7 +109,7 @@ export const main = async (prompt, numAsks, apiKey = process.env.OPENAI_API_KEY 
         messages: [
             { role: "system", content: "You are a helpful assistant." },
             { role: "user", content: resolverPrompt },
-            { role: "assistant", content: "Let's work this out in a step by step way to be sure we have the right answer." }
+            { role: "assistant", content: customAssistantPronmpt }
         ],
         max_tokens: maxTokens,
         n: 1,
