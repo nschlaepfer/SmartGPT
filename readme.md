@@ -56,6 +56,8 @@ node server
 
 Once running, you will be prompted to input a number, specifying how many response options the program should generate and evaluate. While this number could be any positive integer, the efficiency of the evaluation may vary for numbers greater than 3, depending on the complexity of the prompt and topic.
 
+This article here showcases some Zero-Shot Failures of GPT that could be solved with this system: https://medium.com/@konstantine_45825/gpt-4-cant-reason-2eab795e2523
+
 The generated outputs are logged to the console, and the entire conversations are saved in the `output` folder for future reference.
 
 ## Core Components and Usage Reference
