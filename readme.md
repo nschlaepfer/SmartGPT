@@ -1,4 +1,12 @@
-<img width="849" alt="Screenshot 2023-05-24 at 1 59 10 AM" src="https://github.com/nschlaepfer/SmartGPT/assets/44988633/85931e22-9e4c-4236-a2f6-6de87d9d9b72">
+<div style="display: flex;">
+  <div>
+    <img width="849" alt="Screenshot 2023-05-24 at 1 59 10 AM" src="https://github.com/nschlaepfer/SmartGPT/assets/44988633/85931e22-9e4c-4236-a2f6-6de87d9d9b72">
+  </div>
+  <div>
+    <img width="492" alt="Screenshot 2023-08-30 at 1 23 03 PM" src="https://github.com/nschlaepfer/SmartGPT/assets/44988633/9ce21189-3463-4d38-b37c-934bc5d814ad">
+  </div>
+</div>
+
 
 
 
