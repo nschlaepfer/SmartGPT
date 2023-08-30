@@ -29,11 +29,11 @@ export const main = async (prompt, numAsks, apiKey = process.env.OPENAI_API_KEY 
 
     let maxTokens;
     if (model === "gpt-4") {
-        maxTokens = 6000;
+        maxTokens = 7000;
     } else if (model === "gpt-3.5-turbo-16k") {
         maxTokens = 14000;
     } else if (model === "gpt-3.5-turbo") {
-        maxTokens = 2048;
+        maxTokens = 3048;
     } else {
         throw new Error("Invalid model specified.");
     }
