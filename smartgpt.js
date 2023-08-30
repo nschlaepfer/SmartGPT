@@ -14,7 +14,7 @@ export const main = async (prompt, numAsks, apiKey = process.env.OPENAI_API_KEY 
         throw new Error("API Key not found. Please check your .env file.");
     }
 
-    const NUM_ASKS = Number(numAsks);
+    const NUM_ASKS = Number(numAsks); // Standard is 3. User defined.
 
     const progressBar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);
     progressBar.start(NUM_ASKS, 0);
@@ -25,53 +25,68 @@ export const main = async (prompt, numAsks, apiKey = process.env.OPENAI_API_KEY 
 
     const openai = new OpenAIApi(configuration);
 
+    let maxTokens;
+    if (model === "gpt-4") {
+        maxTokens = 6000;
+    } else if (model === "gpt-3.5-turbo-16k") {
+        maxTokens = 14000;
+    } else if (model === "gpt-3.5-turbo") {
+        maxTokens = 2048;
+    } else {
+        throw new Error("Invalid model specified.");
+    }
+
+    // ASK PHASE *****************
     let requests = [];
     for (let i = 0; i < NUM_ASKS; i++) {
         const messages = [
             { role: "system", content: "You are a helpful assistant." },
             { role: "user", content: prompt },
-            { role: "assistant", content: "Let's work this out in a step by step way to be sure we have the right answer." }
+            { role: "assistant", content: "Let's work this out in a step by step way to be sure we have the right answer. Be creative and unique." }
         ];
         requests.push(openai.createChatCompletion({
             model: model,
             messages: messages,
-            max_tokens: 14000,
+            max_tokens: maxTokens,
             n: 1,
             stop: null,
             temperature: 1,
         }));
         progressBar.update(i + 1);
     }
-
     console.log("Requests sent, waiting for responses...");
 
     const responses = await Promise.allSettled(requests);
     progressBar.stop();
 
-    console.log("Responses received, processing...");
+    const resolvedResponses = responses.filter(r => r.status === 'fulfilled').map(r => r.value.data.choices[0].message.content);
+    const initialGptAnswers = resolvedResponses.join('\n\n');
 
-    const resolvedResponses = responses.filter(r => r.status === 'fulfilled');
-
+    // RESEARCHER PHASE *****************
     const researcherPrompt = resolvedResponses.reduce((acc, currentResponse, idx) => {
-        return acc + `Answer Option ${idx+1}: ${currentResponse.value.data.choices[0].message.content} \n\n`;
-    }, `You are a researcher tasked with investigating the ${NUM_ASKS} response options provided. List the flaws and faulty logic of each answer option. Let's work this out in a step by step way to be sure we have all the errors:`);
+        return acc + `Answer Option ${idx+1}: ${currentResponse} \n\n`;
+    }, `You are a researcher tasked with investigating the ${NUM_ASKS} response option(s) provided. List the flaws and faulty logic of each answer option. Let's work this out in a step by step way to be sure we have all the errors:`);
 
     const researcherResponse = await openai.createChatCompletion({
         model: model,
         messages: [
-            { role: "system", content: "You are helpful assistant." },
+            { role: "system", content: "You are a helpful assistant." },
             { role: "user", content: researcherPrompt },
             { role: "assistant", content: "Let's work this out in a step by step way to be sure we have the right answer." }
         ],
-        max_tokens: 14000,
+        max_tokens: maxTokens,
         n: 1,
         stop: null,
-        temperature: 1,
+        temperature: 0.5,
     });
 
     console.log("Researcher Response received, resolving...");
 
-    const resolverPrompt = `You are a resolver tasked with 1) finding which of the ${NUM_ASKS} answer options the researcher thought was best 2) improving that answer, and 3) Printing the improved answer in full. Let's work this out in a step by step way to be sure we have the right answer:`;
+    // RESOLVER PHASE *****************
+    const resolverPrompt = `You are a resolver tasked with finding which of the ${NUM_ASKS} answer options the researcher thought was best then improving that answer. Here is the information you need to use to create the best answer:
+    Researcher's findings: ${researcherResponse.data.choices[0].message.content}
+    Original Prompt: ${prompt}
+    Answer Options: ${resolvedResponses.join(', ')} `;
 
     const resolverResponse = await openai.createChatCompletion({
         model: model,
@@ -80,17 +95,21 @@ export const main = async (prompt, numAsks, apiKey = process.env.OPENAI_API_KEY 
             { role: "user", content: resolverPrompt },
             { role: "assistant", content: "Let's work this out in a step by step way to be sure we have the right answer." }
         ],
-        max_tokens: 14000,
+        max_tokens: maxTokens,
         n: 1,
         stop: null,
-        temperature: 1,
+        temperature: 0.3,
     });
 
     console.log("Resolver Response received, compiling output...");
 
+    const finalAnswer = resolverResponse.data.choices[0].message.content;
+
     const gptOutput = [
         "# Prompt",
         "", prompt, "",
+        "# Initial GPT Answers",
+        "", initialGptAnswers, "",
         "# Researcher Prompt",
         "", researcherPrompt, "",
         "# Researcher Response",
@@ -98,14 +117,15 @@ export const main = async (prompt, numAsks, apiKey = process.env.OPENAI_API_KEY 
         "# Resolver Prompt",
         "", resolverPrompt, "",
         "# Resolver Response",
-        "", resolverResponse.data.choices[0].message.content, ""
+        "", resolverResponse.data.choices[0].message.content, "",
+        "# Final Revised Answer",
+        "", finalAnswer
     ].join("\n\n");
 
     const fileName = `${Date.now()}.txt`;
     const outputDir = path.join(path.dirname(new URL(import.meta.url).pathname), 'output');
     const outputPath = path.join(outputDir, fileName);
 
-    // Write output to a file
     try {
         await fs.mkdir(outputDir, { recursive: true });
         await fs.writeFile(outputPath, gptOutput);
@@ -123,9 +143,11 @@ export const main = async (prompt, numAsks, apiKey = process.env.OPENAI_API_KEY 
         numAsks: NUM_ASKS,
         researcherResponse: researcherResponse.data.choices[0].message.content,
         resolverResponse: resolverResponse.data.choices[0].message.content,
+        finalAnswer: finalAnswer,
         outputURL: outputURL
     };
 };
+
 
 // import fs from 'fs/promises';
 // import path from 'path';
