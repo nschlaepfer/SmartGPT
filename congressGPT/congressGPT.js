@@ -18,7 +18,7 @@ dotenv.config();
  * @param {string} [model] - The model name for ChatGPTAPI (optional)
  * @returns {object} An object with the prompt, numAsks, and gptOutput properties
  */
-export const main = async (prompt, numAsks, apiKey = process.env.API_KEY || minimist(process.argv.slice(2)).apiKey, model = "gpt-4") => {
+export const main = async (prompt, numAsks, apiKey = process.env.OPENAI_API_KEY || minimist(process.argv.slice(2)).apiKey, model = "gpt-4") => {
     console.log("Starting script...");
 
     if (!apiKey) {

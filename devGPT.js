@@ -16,7 +16,7 @@ const SYSTEM_MESSAGE = "You are a helpful assistant.";
 const OUTPUT_FOLDER = 'Results';
 
 const openai = new OpenAIApi(new Configuration({
-    apiKey: process.env.API_KEY || minimist(process.argv.slice(2)).apiKey,
+    apiKey: process.env.OPENAI_API_KEY || minimist(process.argv.slice(2)).apiKey,
 }));
 
 const createChatCompletion = async (model, messages) => {

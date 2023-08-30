@@ -12,7 +12,7 @@ dotenv.config();
 
 const { str } = envalid;
 const env = envalid.cleanEnv(process.env, {
-  API_KEY: str(),
+  OPENAI_API_KEY: str(),
 });
 
 const __filename = fileURLToPath(import.meta.url); // Add __filename declaration
@@ -96,7 +96,7 @@ class ThoughtTree {
 
 
 
-export const main = async (prompt, numAsks, apiKey = env.API_KEY || minimist(process.argv.slice(2)).apiKey, model = "gpt-4") => {
+export const main = async (prompt, numAsks, apiKey = env.OPENAI_API_KEY || minimist(process.argv.slice(2)).apiKey, model = "gpt-4") => {
     logger.info("Starting script...");
 
     const NUM_ASKS = Number(numAsks);
@@ -175,7 +175,7 @@ export { logFilePath }; // Export the variable at the end
 
 // const { str } = envalid;
 // const env = envalid.cleanEnv(process.env, {
-//     API_KEY: str(),
+//     OPENAI_API_KEY: str(),
 // });
 
 // const logger = winston.createLogger({
@@ -240,7 +240,7 @@ export { logFilePath }; // Export the variable at the end
     
 // }
 
-// export const main = async (prompt, numAsks, apiKey = env.API_KEY || minimist(process.argv.slice(2)).apiKey, model = "gpt-4") => {
+// export const main = async (prompt, numAsks, apiKey = env.OPENAI_API_KEY || minimist(process.argv.slice(2)).apiKey, model = "gpt-4") => {
 //     logger.info("Starting script...");
 
 //     const NUM_ASKS = Number(numAsks);
@@ -370,7 +370,7 @@ export { logFilePath }; // Export the variable at the end
 //     }
 // }
 
-// export const main = async (prompt, numAsks, apiKey = process.env.API_KEY || minimist(process.argv.slice(2)).apiKey, model = "gpt-4") => {
+// export const main = async (prompt, numAsks, apiKey = process.env.OPENAI_API_KEY || minimist(process.argv.slice(2)).apiKey, model = "gpt-4") => {
 //     console.log("Starting script...");
 
 //     if (!apiKey) {
@@ -456,7 +456,7 @@ export { logFilePath }; // Export the variable at the end
 //     }
 // }
 
-// export const main = async (prompt, numAsks, apiKey = process.env.API_KEY || minimist(process.argv.slice(2)).apiKey, model = "gpt-4") => {
+// export const main = async (prompt, numAsks, apiKey = process.env.OPENAI_API_KEY || minimist(process.argv.slice(2)).apiKey, model = "gpt-4") => {
 //     console.log("Starting script...");
 
 //     if (!apiKey) {
