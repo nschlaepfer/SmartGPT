@@ -52,7 +52,7 @@ export const main = async (prompt, numAsks, apiKey = process.env.OPENAI_API_KEY 
         requests.push(openai.createChatCompletion({
             model: model,
             messages: messages,
-            max_tokens: maxTokens,
+            max_tokens: maxTokens, //This might not help when there are multiple messages. Since they have to get injected into the same prompt.
             n: 1,
             stop: null,
             temperature: 1,
@@ -63,6 +63,10 @@ export const main = async (prompt, numAsks, apiKey = process.env.OPENAI_API_KEY 
 
     const responses = await Promise.allSettled(requests);
     progressBar.stop();
+
+
+    //Adding an option to prevent the sctipt form continuing if the question is not suitable. 
+
 
     // Logging rejected promises
     responses.forEach((response, index) => {
