@@ -101,7 +101,7 @@ Please cite this project as follows if used in your research or work:
 ```bibtex
 @misc{SmartGPT,
   author = {Nicolas Schlaepfer},
-  title = {SmartGPT: A Dynamic Prompting System},
+  title = {SmartGPT: A Dynamic Prompting System, Inspired by AI Explained on YT},
   year = {2022},
   publisher = {GitHub},
   journal = {GitHub repository},
