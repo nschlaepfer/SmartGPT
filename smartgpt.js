@@ -100,7 +100,7 @@ export const main = async (prompt, numAsks, apiKey = process.env.OPENAI_API_KEY 
 
     // RESOLVER PHASE *****************
     //Removed this Original Prompt: ${prompt}
-    const resolverPrompt = `You are a resolver tasked with finding which of the ${NUM_ASKS} answer(s) is best. Pick an answer with the least amount of flaws and then refine that answer. Here is the information you need to use to create the best answer:
+    const resolverPrompt = `You are a resolver tasked with finding which of the ${NUM_ASKS} answer(s) is best. From the Answer(s) and Resarcher analysis find the answer with the least amount of flaws and then resolve that answer. Here is the information you need to use to create the best answer:
     Researcher's findings: ${researcherResponse.data.choices[0].message.content}
     Answer Options: ${resolvedResponses.join(', ')} `;
 
