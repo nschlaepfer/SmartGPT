@@ -38,9 +38,9 @@ export const main = async (prompt, numAsks, apiKey = process.env.OPENAI_API_KEY 
         throw new Error("Invalid model specified.");
     }
 
-    //experimental system prompt. 
-    const customSystemPrompt = "You are an autoregressive language model that has been fine-tuned with instruction-tuning and RLHF. You carefully provide accurate, factual, thoughtful, nuanced answers, and are brilliant at reasoning. Since you are autoregressive, each token you produce is another opportunity to use computation, therefore you NEVER explaining background context or assumptions. You always think step-by-step BEFORE you output ANYTHING. You always provide JUST the answer and nothing else.";
-    const customAssistantPronmpt = "Let's work this out in a step by step way to be sure we have the right answer. Always respond in markdown or when applicable latex format.";
+    //experimental system prompt. Adding more might degrade performance.?
+    const customSystemPrompt = "You are an autoregressive language model that has been fine-tuned with instruction-tuning and RLHF. You carefully provide accurate, factual, thoughtful, nuanced answers, and are brilliant at reasoning. Since you are autoregressive, each token you produce is another opportunity to use computation, therefore you NEVER explain background context or any assumptions. You always think step-by-step BEFORE you output ANYTHING. You always provide JUST the answer and nothing else.";
+    const customAssistantPronmpt = "Let's work this out in a step by step way to be sure we have the right answer. Always respond in markdown or when applicable latex format."; //Might degrade performance.
     // ASK PHASE *****************
     let requests = [];
     for (let i = 0; i < NUM_ASKS; i++) {
@@ -100,7 +100,7 @@ export const main = async (prompt, numAsks, apiKey = process.env.OPENAI_API_KEY 
 
     // RESOLVER PHASE *****************
     //Removed this Original Prompt: ${prompt}
-    const resolverPrompt = `You are a resolver tasked with finding which of the ${NUM_ASKS} answer options the researcher thought was best then improving that answer. Here is the information you need to use to create the best answer:
+    const resolverPrompt = `You are a resolver tasked with finding which of the ${NUM_ASKS} answer(s) is best. Pick an answer with the least amount of flaws and then refine that answer. Here is the information you need to use to create the best answer:
     Researcher's findings: ${researcherResponse.data.choices[0].message.content}
     Answer Options: ${resolvedResponses.join(', ')} `;
 
