@@ -352,7 +352,7 @@
                 <button type="button" id="stopButton" class="btn btn-stop" disabled>Stop Generation</button>
                 <div class="output-link">
                     <span class="file-icon" role="img" aria-label="File">📄</span>
-                    <a href="/output/outputFileName.txt" target="_blank">Output File</a>
+                    <a href="" target="_blank">Output File</a>
                   </div>
                   
                   
@@ -403,6 +403,8 @@
                     modeEmoji = '🏛️'; // CongressGPT
                 } else if (selectedMode === '3') {
                     modeEmoji = '🌳'; // Tree Of Thought
+                } else if (selectedMode === '4') {
+                    modeEmoji = '👨‍💻'; // DevGPT
                 }
                 $('#modeEmoji').text(modeEmoji);
             });
@@ -434,6 +436,7 @@
                         $('#outputText').html(gptOutput + "<br/>" + "Final Answer: " + finalAnswer);
                     },
                     error: function (error) {
+                        $('#outputText').html('<div class="alert alert-danger" role="alert">Error: ' + error.responseText + '</div>');
                         console.log(error);
                     }
                 });

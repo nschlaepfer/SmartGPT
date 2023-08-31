@@ -10,6 +10,8 @@ import { stringify } from 'querystring';
 
 const app = express();
 const port = 3005;
+const fileURLs = {};
+
 
 // Initialize session
 app.use(session({
@@ -33,6 +35,27 @@ app.get('/', (req, res) => {
   res.render('index');
 });
 
+// Add this before app.listen(port, () => {...})
+app.get('/download/:fileName', (req, res) => {
+  const fileName = req.params.fileName;
+  const outputDir = path.join('output'); // same as where you save the files
+  const filePath = path.join(outputDir, fileName);
+
+  if (fs.existsSync(filePath)) {
+    res.download(filePath, fileName, (err) => {
+      if (err) {
+        console.error("Download error:", err);
+        res.status(500).send("An error occurred while downloading the file.");
+      }
+    });
+  } else {
+    res.status(404).send("File not found.");
+  }
+});
+
+
+
+
 app.post('/run', async (req, res) => {
 
   const { apiKey } = req.body;
@@ -53,18 +76,22 @@ app.post('/run', async (req, res) => {
     const outputDir = path.join('output');
     const outputPath = path.join(outputDir, fileName);
 
-    // Write output to a file
+    // Write output to a file NOT PROD READY
     try {
       await fs.mkdir(outputDir, { recursive: true });
       await fs.writeFile(outputPath, JSON.stringify(result));
       console.log(`Output was successfully saved to ${outputPath}`);
+      // Save file path to in-memory database
+      fileURLs[fileName] = outputPath;
     } catch (err) {
       console.error("An error occurred while writing the output to a file: ", err);
     }
+    
 
     //THIS DISPLAYS RESULTS
     // Return JSON with gptOutput field for client side
-    res.json({ gptOutput: result.researcherResponse, finalAnswer: result.finalAnswer});
+    //Added fileName to return
+    res.json({ gptOutput: result.researcherResponse, finalAnswer: result.finalAnswer, fileName: fileName });
   } catch (err) {
     res.status(500).json({ error: "An error occurred: " + err.message });
   }
