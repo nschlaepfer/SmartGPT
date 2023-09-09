@@ -58,6 +58,8 @@ Once running, you will be prompted to input a number, specifying how many respon
 
 This article here showcases some Zero-Shot Failures of GPT that could be possibly solved with this system in the future: https://medium.com/@konstantine_45825/gpt-4-cant-reason-2eab795e2523
 
+https://benchmarks.llmonitor.com
+
 Questions related to summation or counting still have issues. This could easily be solved by adding a toolbelt like system to point the LLM at a set of tools to accomplish mathatical calculations. 
 
 The generated outputs are logged to the console, and the entire conversations are saved in the `output` folder for future reference.
