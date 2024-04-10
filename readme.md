@@ -14,14 +14,8 @@
 
 # SmartGPT: Enhancing Text Generation with Dynamic Prompting
 
-# AFTER RECENT EVENTS I HAVE CHOSEN TO JUST MAKE THIS INTO A 'GPT' ON OPEN AI ASSISTANTS.
 
-# USE NOW. GPT: https://chat.openai.com/g/g-cKdGClb9l-smartgpt
-
-# THIS 'GPT' IN CHAT GPT HAS TOTS AND CHAIN OF THOUGHT. 
-
-
-# BELOW IS AN OLD PROJECT. PLEASE USE LINK ABOVE TO USE NOW IN CHATGPT. OR FEEL FREE TO CONTINUE.
+# BELOW IS AN OLD PROJECT.
 
 SmartGPT is a Node.js-based tool that introduces a dynamic prompting system to the world of AI-driven text generation. Informed by 'AI Explained' on YouTube, it generates multiple responses to a given prompt and evaluates their quality, thereby facilitating the creation of improved and more relevant AI responses.
 
