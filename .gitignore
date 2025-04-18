@@ -1,8 +1,5 @@
+node_modules/
+dist/
 .env
-output/*
-node_modules/*
-old outputs/*
-features.md
-
-```
-node_modules
+*.sqlite
+.DS_Store
