@@ -63,7 +63,8 @@ export class SmartGPT {
   constructor(private opts: SmartOpts) {
     if (!opts.apiKey) throw new Error("OPENAI_API_KEY required");
     process.env.OPENAI_API_KEY = opts.apiKey;
-    if (opts.googleApiKey) process.env.GOOGLE_API_KEY = opts.googleApiKey;
+    if (opts.googleApiKey)
+      process.env.GOOGLE_GENERATIVE_AI_API_KEY = opts.googleApiKey;
     if (opts.serperApiKey) process.env.SERPER_API_KEY = opts.serperApiKey;
 
     // Models setup

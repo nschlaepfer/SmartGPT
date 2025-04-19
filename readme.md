@@ -1,6 +1,15 @@
 # SmartGPT
 
-A TypeScript library for building advanced AI applications with multiple LLM providers, featuring a dual-model pipeline that combines fast reasoning and deep context processing.
+A TypeScript library for building advanced AI applications with multiple LLM providers, featuring a dual-model pipeline that combines fast reasoning and deep context processing. SmartGPT can be used as a library or as a complete REST API server through its MCP (Model Context Protocol) interface.
+
+## Key Features
+
+* **Dual-Model AI Pipeline**: Combines fast reasoning and deep context models for optimal results
+* **REST API Server**: Full system control through comprehensive HTTP endpoints (MCP Server)
+* **Multi-Provider Support**: OpenAI, Google AI, Anthropic, and Groq models
+* **Advanced Reasoning**: ThoughtChain for multi-step reasoning with self-critique
+* **Tool Integration**: Secure shell execution, file parsing, and web search tools
+* **Knowledge Management**: Memory store with Neo4j or fallback retrieval
 
 ## How It Works
 
@@ -28,7 +37,79 @@ SmartGPT uses a sophisticated dual-model pipeline architecture that leverages th
    * Organized into specialized components for better maintainability
    * Flexible provider system supporting both OpenAI and Google AI models
 
-## Features
+## Usage Options
+
+SmartGPT can be used in two main ways:
+
+### 1. As a TypeScript Library
+
+Import and use SmartGPT in your Node.js applications:
+
+```typescript
+import { SmartGPT } from './smartGPT.js';
+
+const smartGPT = new SmartGPT({
+  apiKey: process.env.OPENAI_API_KEY || '',
+  // Optional config
+  googleApiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
+  model: "gpt-4.1",
+  deep: true,
+  serperApiKey: process.env.SERPER_API_KEY, // For web search
+});
+
+// Basic question answering
+const answer = await smartGPT.ask('What is quantum computing?');
+```
+
+### 2. As a REST API Server (MCP)
+
+Run SmartGPT as a standalone server exposing all functionality through REST API endpoints:
+
+```bash
+# Start the MCP server
+npm run mcp-server
+```
+
+This starts a server on port 4141 with comprehensive endpoints:
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/` | GET | System information and documentation |
+| `/api/readme` | GET | Full README documentation (formats: json, html, markdown) |
+| `/api/system` | GET | Detailed system status and configuration |
+| `/mcp/manifest` | GET | List all available tools and their parameters |
+| `/mcp/invoke` | POST | Execute a specific tool with provided input |
+| `/api/ask` | POST | Use dual-model pipeline for questions |
+| `/api/thoughtchain` | POST | Multi-step reasoning with refinement |
+| `/api/websearch` | POST | Search the web for real-time information |
+
+#### API Examples
+
+**Ask a question:**
+
+```bash
+curl -X POST http://localhost:4141/api/ask \
+  -H "Content-Type: application/json" \
+  -d '{"query":"What is quantum computing?"}'
+```
+
+**Run multi-step reasoning:**
+
+```bash
+curl -X POST http://localhost:4141/api/thoughtchain \
+  -H "Content-Type: application/json" \
+  -d '{"query":"Explain the implications of quantum computing on cryptography", "drafts": 3}'
+```
+
+**Execute a tool:**
+
+```bash
+curl -X POST http://localhost:4141/mcp/invoke \
+  -H "Content-Type: application/json" \
+  -d '{"tool":"openai_completion", "input":{"prompt":"What is the capital of France?"}}'
+```
+
+## Detailed Features
 
 * Support for OpenAI and Google AI models
 * Memory store for context retention
@@ -38,6 +119,10 @@ SmartGPT uses a sophisticated dual-model pipeline architecture that leverages th
 * ThoughtChain - multi-step reasoning pipeline for improved answers
 * Real-time web search integration with Serper API
 * Modular architecture for better maintainability
+* **NEW:** Secure macOS sandboxed shell execution (with automatic fallback to regular execution)
+* **NEW:** Multi-provider AI model tools (OpenAI, Anthropic, Google Gemini, Groq)
+* **NEW:** File parsing tools for CSV, JSON, Markdown, and PDF files
+* **NEW:** MCP Server for exposing tools via REST API
 
 ## Requirements
 
@@ -61,14 +146,22 @@ The project depends on several packages:
 npm install node-fetch hnswlib-node better-sqlite3 uuid zod @ai-sdk/openai @ai-sdk/google neo4j-driver
 ```
 
+Additional dependencies for the new toolchain:
+
+```bash
+npm install @anthropic-ai/sdk @google/generative-ai groq-sdk pdf-parse express debug
+```
+
 ## Configuration
 
 Create a `.env` file with your API keys:
 
 ```
 OPENAI_API_KEY=your-openai-api-key
-GOOGLE_API_KEY=your-google-api-key (optional)
+GOOGLE_GENERATIVE_AI_API_KEY=your-google-api-key (optional)
 SERPER_API_KEY=your-serper-api-key (optional, for web search)
+ANTHROPIC_API_KEY=your-anthropic-api-key (optional)
+GROQ_API_KEY=your-groq-api-key (optional)
 ```
 
 ## Architecture
@@ -84,42 +177,9 @@ SmartGPT has been refactored into a modular architecture:
 * `deepExplorer.ts` - Monte Carlo Tree Search implementation
 * `prompts.json` - Static prompts for various functions
 * `smartGPT.ts` - Main class that integrates all components
+* `smartgpt_mcp_server.ts` - REST API server exposing all functionality
 
-## Usage
-
-See `example.ts` for basic usage:
-
-```typescript
-import { SmartGPT } from './smartGPT.js';
-
-const smartGPT = new SmartGPT({
-  apiKey: process.env.OPENAI_API_KEY || '',
-  // Optional config
-  googleApiKey: process.env.GOOGLE_API_KEY,
-  model: "gpt-4.1",
-  deep: true,
-  serperApiKey: process.env.SERPER_API_KEY, // For web search
-});
-
-async function main() {
-  // Basic query
-  const answer = await smartGPT.ask('What is the capital of France?');
-  console.log('Answer:', answer);
-
-  // Using web search
-  const searchResult = await smartGPT.webSearch('What are the latest developments in large language models?');
-  console.log('Web Search Result:', searchResult);
-
-  // Using ThoughtChain for complex queries
-  const result = await smartGPT.thoughtChain(
-    "Explain HippoRAG in plain English",
-    3  // number of drafts
-  );
-  console.log(result.best);
-}
-
-main();
-```
+## Library Usage Examples
 
 ### ThoughtChain
 
@@ -132,6 +192,14 @@ The ThoughtChain feature implements a chain-of-thought reasoning pattern:
 
 This approach helps produce more accurate and well-reasoned responses, especially for complex topics.
 
+```typescript
+const result = await smartGPT.thoughtChain(
+  "Explain HippoRAG in plain English",
+  3  // number of drafts
+);
+console.log(result.best);
+```
+
 ### Web Search
 
 The built-in web search functionality uses the Serper API to perform real-time internet searches:
@@ -143,44 +211,235 @@ const searchResult = await smartGPT.webSearch('What are the latest developments 
 
 If a Serper API key is not provided, the system will fall back to simulated search results.
 
+### Secure Shell Execution
+
+The toolchain includes a macOS shell command execution tool with a sandbox fallback mechanism:
+
+```typescript
+import { macos_shell } from './smartGPT.js';
+
+// Execute a command (will try sandbox first, then fallback to regular execution)
+const result = await macos_shell({ command: 'ls -la' });
+console.log(`Exit code: ${result.exitCode}`);
+console.log(`Output: ${result.stdout}`);
+```
+
+The sandbox attempts to use Apple's Seatbelt technology to:
+
+* Deny all operations by default
+* Import BSD system profile for basic functionality
+* Allow writes only to working directory and temporary folders
+* Block all network access
+
+If sandbox execution fails (due to macOS permissions), it automatically falls back to regular command execution with a warning message.
+
+**Note:** To use the full sandbox functionality on modern macOS versions, you would need to create a properly signed helper app with appropriate entitlements. The current implementation provides a security warning when it falls back to unsandboxed execution.
+
+### Multi-Provider AI Integration
+
+The toolchain supports multiple AI providers:
+
+```typescript
+import {
+  openai_completion,
+  anthropic_completion,
+  google_gemini,
+  groq_completion
+} from './smartGPT.js';
+
+// OpenAI
+const openaiResult = await openai_completion({
+  prompt: "What is the capital of France?",
+  model: "gpt-4.1" // optional, defaults to "gpt-4.1"
+});
+
+// Anthropic Claude
+const claudeResult = await anthropic_completion({
+  prompt: "Explain quantum computing",
+  model: "claude-2" // optional, defaults to "claude-2"
+});
+
+// Google Gemini
+const geminiResult = await google_gemini({
+  prompt: "Write a poem about AI",
+  model: "gemini-2.5pro" // optional, defaults to "gemini-2.5pro"
+});
+
+// Groq (Llama 4, etc)
+const groqResult = await groq_completion({
+  prompt: "Summarize the history of AI",
+  model: "llama4-70b" // optional, defaults to "llama4-70b"
+});
+```
+
+### File Parsing Tools
+
+Parse and extract content from various file formats:
+
+```typescript
+import {
+  read_csv,
+  read_json,
+  read_markdown,
+  read_pdf
+} from './smartGPT.js';
+
+// Read a CSV file as structured data
+const csvData = await read_csv({ filePath: 'data.csv' });
+
+// Parse a JSON file
+const jsonData = await read_json({ filePath: 'config.json' });
+
+// Read a Markdown file
+const markdownContent = await read_markdown({ filePath: 'README.md' });
+
+// Extract text from a PDF
+const pdfText = await read_pdf({ filePath: 'document.pdf' });
+```
+
+## MCP Server (REST API)
+
+The MCP (Master Control Program) server exposes all SmartGPT functionality via a REST API, making it ideal for:
+
+* Building web applications with AI capabilities
+* Creating chat interfaces backed by powerful reasoning
+* Integrating with other programming languages through HTTP
+* Centralized AI service for multiple client applications
+
+### Starting the Server
+
+```bash
+npm run mcp-server
+```
+
+This starts an Express server on port 4141 that provides comprehensive endpoints:
+
+```
+🧠 SmartGPT Master Control Program running at http://localhost:4141
+Available endpoints:
+  GET  /                  - System information and documentation
+  GET  /api/readme        - Full README documentation (formats: json, html, markdown)
+  GET  /api/system        - Detailed system status and configuration
+  GET  /mcp/manifest      - List all available tools
+  POST /mcp/invoke        - Execute a specific tool
+  POST /api/ask           - Use dual-model pipeline for questions
+  POST /api/thoughtchain  - Multi-step reasoning with refinement
+  POST /api/websearch     - Search the web for real-time information
+```
+
+### API Usage Examples
+
+**Get system information:**
+
+```bash
+curl http://localhost:4141/api/system
+```
+
+**Get README documentation (in HTML format):**
+
+```bash
+curl http://localhost:4141/api/readme?format=html > documentation.html
+```
+
+**List all available tools:**
+
+```bash
+curl http://localhost:4141/mcp/manifest
+```
+
+**Ask a question using the dual-model pipeline:**
+
+```bash
+curl -X POST http://localhost:4141/api/ask \
+  -H "Content-Type: application/json" \
+  -d '{"query":"What is the significance of quantum computing for cryptography?"}'
+```
+
+**Use ThoughtChain for complex reasoning:**
+
+```bash
+curl -X POST http://localhost:4141/api/thoughtchain \
+  -H "Content-Type: application/json" \
+  -d '{"query":"Explain how large language models might impact education", "drafts": 3}'
+```
+
+**Search the web for real-time information:**
+
+```bash
+curl -X POST http://localhost:4141/api/websearch \
+  -H "Content-Type: application/json" \
+  -d '{"query":"latest developments in quantum computing 2025"}'
+```
+
+**Call OpenAI directly:**
+
+```bash
+curl -X POST http://localhost:4141/mcp/invoke \
+  -H "Content-Type: application/json" \
+  -d '{"tool":"openai_completion","input":{"prompt":"Explain LLM tokenization in simple terms"}}'
+```
+
+**Execute a shell command:**
+
+```bash
+curl -X POST http://localhost:4141/mcp/invoke \
+  -H "Content-Type: application/json" \
+  -d '{"tool":"macos_shell","input":{"command":"ls -la"}}'
+```
+
+**Read a markdown file:**
+
+```bash
+curl -X POST http://localhost:4141/mcp/invoke \
+  -H "Content-Type: application/json" \
+  -d '{"tool":"read_markdown","input":{"filePath":"README.md"}}'
+```
+
+## Examples
+
+The project includes several examples showing how to use SmartGPT:
+
+### Toolchain Example
+
+See `examples/toolchain.ts` for a complete example showing how to:
+
+* Execute shell commands (with sandbox fallback)
+* Read and parse files
+* Call different AI models
+* Combine tools in a dual-model thought chain
+
+```bash
+npm run toolchain
+```
+
+### Original-style Example
+
+See `examples/original-style.ts` for an example closer to the original SmartGPT implementation:
+
+```bash
+npm run original
+```
+
 ## Running Examples
 
+The project includes several npm scripts to run different examples:
+
 ```bash
+# Run the basic example
 npm run start
+
+# Run the toolchain example
+npm run toolchain
+
+# Run the original-style example
+npm run original
+
+# Check if environment variables are properly loaded
+npm run check-env
+
+# Test the macOS shell command execution
+npm run test-shell
+
+# Start the MCP server
+npm run mcp-server
 ```
-
-Or run a specific example:
-
-```bash
-npx tsx example.ts
-```
-
-## Building
-
-```bash
-npm run build
-```
-
-This will generate compiled JavaScript files in the `dist` directory.
-
-## External Services
-
-This project integrates with the following external services:
-
-1. **OpenAI API** (required) - For language model capabilities
-2. **Google AI API** (optional) - For alternative language models
-3. **Neo4j database** (optional) - For knowledge retrieval
-4. **Serper API** (optional) - For real-time web search
-
-### Neo4j Setup Instructions
-
-* Install Neo4j from https://neo4j.com/download/
-* Create a database with username "neo4j" and password "password" (or configure your own in the code)
-* Create a fulltext index named "chunkIndex" on your content nodes
-* Import your documents into the database as nodes with a "content" property
-
-### Serper API Setup
-
-* Register for a Serper API key at https://serper.dev
-* Add the key to your `.env` file as `SERPER_API_KEY`
-* Configure timeout and result limits in your code as needed

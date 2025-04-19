@@ -1,0 +1,23 @@
+(version 1)
+;; Disallow everything by default
+(deny default)
+
+;; Import baseline BSD profile
+(import "/System/Library/Sandbox/Profiles/bsd.sb")
+
+;; This system profile grants access to a number of things, such as:
+;;
+;; - locale info
+;; - system libraries (/System/Library, /usr/lib, etc)
+;; - access to to basic tools (/etc, /dev/urandom, etc)
+;; - Apple services (com.apple.system, com.apple.dyld, etc)
+;;
+;; and more, see bsd.sb and system.sb in the corresponding directory.
+
+;; Allow writes to working directory
+(allow file-write*
+    (subpath ".")      ;; Current directory
+    (subpath "/tmp"))  ;; Temporary directory
+
+;; Block all network access
+(deny network*)

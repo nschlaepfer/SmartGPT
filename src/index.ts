@@ -9,3 +9,6 @@ export * from "./models/embedder.js";
 export * from "./memory/memory.js";
 export * from "./search/retrievers.js";
 export * from "./search/deepExplorer.js";
+
+// Export tools
+export * from "./tools/index.js";
