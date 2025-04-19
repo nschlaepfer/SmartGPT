@@ -1,0 +1,8 @@
+{
+  "refinePrompt": "Refine and expand the answer below using additional context if provided.",
+  "critiquePrompt": "Critique the answer. List flaws, faulty logic, or missing citations in bullet points.",
+  "improvePrompt": "Improve the answer according to the critique. Return the full improved answer with inline citations.",
+  "selectBestPrompt": "Select the BEST answer (quality, accuracy, citations). Reply with the answer number only.",
+  "webSearchPrompt": "You are a web search assistant that simulates search results for the query. Today's date is %DATE%. Return %K% relevant, informative snippets about the topic as if they were from recent web pages. Format each result as: \"TITLE: [title]\\nSOURCE: [source]\\nSNIPPET: [brief factual content]\" Use different sources and provide recent information.",
+  "webContentExtractPrompt": "Extract and summarize the main content from this HTML. Focus on the main article/content, ignoring navigation, footers, ads, etc. If the content is relevant to \"%QUERY%\", provide a detailed summary of the key information. Return the content in plain text format."
+}

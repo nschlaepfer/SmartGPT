@@ -1,304 +1,38 @@
-// ============================================================================
-// 2025 @nschlaepfer
-// (one‑file bundle)
-// ---------------------------------------------------------------------------
-// External deps (add to package.json):
-//   ai, @ai-sdk/openai, @ai-sdk/google, openai, langgraph, neo4j-driver,
-//   hnswlib-node, better-sqlite3, zod, uuid, tsx
-// ---------------------------------------------------------------------------
-// v0.6 (18 Apr 2025)  → **Dual‑model pipeline: o4‑mini ⇢ gpt‑4.1**
-//   • o4‑mini → reasoning / fast drafting
-//   • gpt‑4.1 (1 M‑token window) → refinement / long‑context work
-//   • All public APIs now call BOTH models sequentially unless you override.
-//   • Constructor accepts reasoningModel/contextModel overrides.
-
-import { streamText, generateText } from "ai";
-import { openai as vercelOpenAI } from "@ai-sdk/openai";
-import { google as vercelGoogle } from "@ai-sdk/google";
+// SmartGPT - Main class that integrates all components
 import OpenAI from "openai";
-import { v4 as uuidv4 } from "uuid";
-import { z, ZodType } from "zod";
-import { HierarchicalNSW } from "hnswlib-node";
-import Database from "better-sqlite3";
+import { State } from "./types.js";
+import { Embedder } from "../models/embedder.js";
+import { MemoryStore } from "../memory/memory.js";
+import {
+  Retriever,
+  HippoRetriever,
+  FallbackRetriever,
+} from "../search/retrievers.js";
+import { DeepExplorer } from "../search/deepExplorer.js";
+import { rawCall, callStructured } from "../models/llm.js";
 import neo4j, { Driver } from "neo4j-driver";
+import { z, ZodType } from "zod";
+import { ChatMsg } from "./types.js";
 
-/* ---------------------------------------------------------------------- */
-/* Provider helpers                                                        */
-/* ---------------------------------------------------------------------- */
-
-type ProviderKey = "openai" | "google";
-const PROVIDERS = { openai: vercelOpenAI, google: vercelGoogle } as const;
-const inferProvider = (m: string): ProviderKey =>
-  m.startsWith("gemini") ? "google" : "openai";
-const providerFor = (m: string) =>
-  inferProvider(m) === "google"
-    ? PROVIDERS.google(m, { useSearchGrounding: true })
-    : PROVIDERS.openai(m);
-
-/* ---------------------------------------------------------------------- */
-/* LLM helpers (dual‑model)                                                */
-/* ---------------------------------------------------------------------- */
-
-interface ChatMsg {
-  role: "user" | "assistant" | "system";
-  content: string;
-}
-const openaiClient = new OpenAI();
-
-async function rawCall(opts: {
-  model: string;
-  messages: ChatMsg[];
-  func?: OpenAI.ChatCompletionCreateParams.Function[];
-  schema?: ZodType<any>;
-}) {
-  if (inferProvider(opts.model) === "openai") {
-    // Remove temperature for models that don't support it (like o4-mini)
-    const temperature = opts.model.includes("o4-mini") ? undefined : 0.2;
-
-    const resp = await openaiClient.chat.completions.create({
-      model: opts.model,
-      messages: opts.messages,
-      tools: opts.func
-        ? opts.func.map((fn) => ({
-            type: "function" as const,
-            function: fn,
-          }))
-        : undefined,
-      response_format: opts.schema ? { type: "json_object" } : undefined,
-      temperature: temperature,
-    });
-    const content = resp.choices[0].message.content ?? "";
-    return opts.schema ? opts.schema.parse(JSON.parse(content)) : content;
-  }
-  const { text } = await generateText({
-    model: providerFor(opts.model),
-    messages: opts.messages,
-  });
-  return text;
-}
-
-async function callStructured<T>(
-  model: string,
-  prompt: string,
-  schema: ZodType<T>
-) {
-  return rawCall({
-    model,
-    messages: [{ role: "user", content: prompt }],
-    schema,
-  }) as Promise<T>;
-}
-
-/* ---------------------------------------------------------------------- */
-/* Embedding + Memory                                                     */
-/* ---------------------------------------------------------------------- */
-
-class Embedder {
-  private cache = new Map<string, Float32Array>();
-  constructor(private model = "text-embedding-3-small") {}
-  async embed(text: string) {
-    if (this.cache.has(text)) return this.cache.get(text)!;
-    const {
-      data: [vec],
-    } = await openaiClient.embeddings.create({
-      model: this.model,
-      input: text,
-    });
-    const arr = new Float32Array(vec.embedding);
-    this.cache.set(text, arr);
-    return arr;
-  }
-  async dim() {
-    return (await this.embed("probe")).length;
-  }
-}
-
-const DECAY = 0.7;
-class MemoryStore {
-  private index: HierarchicalNSW;
-  private db: Database.Database;
-  private dim: number;
-  constructor(dim: number, dbPath = "memory.sqlite") {
-    this.dim = dim;
-    this.index = new HierarchicalNSW("cosine", dim);
-    this.index.initIndex(16_384, 16, 200, 100);
-    this.db = new Database(dbPath);
-    this.db.exec(
-      `CREATE TABLE IF NOT EXISTS memories(id TEXT PRIMARY KEY, vec BLOB, content TEXT, created INT, accessed INT)`
-    );
-  }
-  private score(r: { created: number; accessed: number }) {
-    return DECAY * r.accessed + (1 - DECAY) * r.created;
-  }
-  async add(t: string, embed: (x: string) => Promise<Float32Array>) {
-    const vec = await embed(t);
-    if (vec.length !== this.dim) throw new Error("dim mismatch");
-    this.index.addPoint(Array.from(vec), this.index.getCurrentCount());
-    const now = Date.now();
-    this.db
-      .prepare(`INSERT INTO memories VALUES (?,?,?,?,?)`)
-      .run(uuidv4(), Buffer.from(vec.buffer), t, now, now);
-  }
-  async search(
-    q: string,
-    k: number,
-    embed: (x: string) => Promise<Float32Array>
-  ) {
-    const qv = await embed(q);
-    const { neighbors } = this.index.searchKnn(
-      Array.from(qv),
-      Math.min(k * 4, 256)
-    );
-    if (!neighbors.length) return [];
-    const rows = this.db
-      .prepare(
-        `SELECT content, created, accessed FROM memories WHERE rowid IN (${neighbors
-          .map(() => "?")
-          .join(",")})`
-      )
-      .all(...neighbors);
-    return rows
-      .map((r: any) => ({ c: r.content, s: this.score(r) }))
-      .sort((a, b) => b.s - a.s)
-      .slice(0, k)
-      .map((r) => r.c);
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-/* Retrievers (Neo4j + fallback)                                           */
-/* ---------------------------------------------------------------------- */
-
-interface Retriever {
-  retrieve(q: string, k?: number): Promise<string[]>;
-}
-
-class HippoRetriever implements Retriever {
-  constructor(private driver: Driver) {}
-  async retrieve(q: string, k = 5) {
-    const ses = this.driver.session();
-    const res = await ses.run(
-      `MATCH (node:Document)
-       WHERE node.content CONTAINS $q OR node.title CONTAINS $q
-       RETURN node.content AS c LIMIT $k`,
-      { q, k: neo4j.int(k) }
-    );
-    await ses.close();
-    return res.records.map((r) => r.get("c"));
-  }
-}
-
-class FallbackRetriever implements Retriever {
-  constructor(
-    private mem: MemoryStore,
-    private embed: (t: string) => Promise<Float32Array>
-  ) {}
-  async retrieve(q: string, k = 5) {
-    return this.mem.search(q, k, this.embed);
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-/* Monte Carlo Tree Search                                                */
-/* ---------------------------------------------------------------------- */
-
-interface State {
-  hash(): string;
-  terminal(): boolean;
-}
-interface Action {
-  label: string;
-  apply(s: State): State;
-}
-
-type Propose = (s: State, k: number) => Promise<Action[]>;
-type Evaluate = (s: State) => Promise<number>;
-type Policy = (s: State) => Promise<Action>;
-
-class DeepExplorer {
-  private Nsa = new Map<string, number>();
-  private Wsa = new Map<string, number>();
-  private Ns = new Map<string, number>();
-  private key = (s: string, a: string) => `${s}::${a}`;
-  private ucb = (s: string, a: string, c = 1.414) => {
-    const nSA = this.Nsa.get(this.key(s, a)) ?? 0.1;
-    const wSA = this.Wsa.get(this.key(s, a)) ?? 0;
-    const nS = this.Ns.get(s) ?? 1;
-    return wSA / nSA + c * Math.sqrt(Math.log(nS) / nSA);
-  };
-  constructor(
-    private propose: Propose,
-    private evaluate: Evaluate,
-    private rollout: Policy
-  ) {}
-
-  private back(path: { s: State; a?: Action }[], r: number) {
-    for (const { s, a } of path) {
-      this.Ns.set(s.hash(), (this.Ns.get(s.hash()) ?? 0) + 1);
-      if (a) {
-        const k = this.key(s.hash(), a.label);
-        this.Nsa.set(k, (this.Nsa.get(k) ?? 0) + 1);
-        this.Wsa.set(k, (this.Wsa.get(k) ?? 0) + r);
-      }
-    }
-  }
-
-  private async iter(root: State, maxDepth: number) {
-    const path: { s: State; a?: Action }[] = [];
-    let s = root;
-    for (let d = 0; d < maxDepth; ++d) {
-      if (s.terminal()) break;
-      const acts = await this.propose(s, 16);
-      let a = acts.find((x) => !this.Nsa.has(this.key(s.hash(), x.label)));
-      if (!a)
-        a = acts.sort(
-          (x, y) => this.ucb(s.hash(), y.label) - this.ucb(s.hash(), x.label)
-        )[0];
-      path.push({ s, a });
-      s = a.apply(s);
-      if (!this.Ns.has(s.hash())) {
-        const r = await this.evaluate(s);
-        this.back(path, r);
-        return;
-      }
-    }
-    let sr = s,
-      depth = path.length;
-    while (!sr.terminal() && depth++ < maxDepth)
-      sr = (await this.rollout(sr)).apply(sr);
-    this.back(path, await this.evaluate(sr));
-  }
-
-  async search(root: State, budget = 256, maxDepth = 8) {
-    for (let i = 0; i < budget; ++i) await this.iter(root, maxDepth);
-    const acts = await this.propose(root, 32);
-    const best = acts.sort(
-      (a, b) =>
-        (this.Nsa.get(this.key(root.hash(), b.label)) ?? 0) -
-        (this.Nsa.get(this.key(root.hash(), a.label)) ?? 0)
-    )[0];
-    return best ? best.apply(root) : root;
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-/* Optional custom function example                                       */
-/* ---------------------------------------------------------------------- */
-
-const CalcSchema = z.object({ expression: z.string() });
-const calcFn: OpenAI.ChatCompletionCreateParams.Function = {
-  name: "calculator",
-  description: "Evaluate a math expression and return the numeric result.",
-  parameters: {
-    type: "object",
-    properties: { expression: { type: "string" } },
-    required: ["expression"],
-  },
+// Dynamically import node-fetch when needed
+type FetchResponse = {
+  ok: boolean;
+  status: number;
+  text: () => Promise<string>;
+  json: () => Promise<any>;
 };
 
-/* ---------------------------------------------------------------------- */
-/* SmartGPT (dual‑model pipeline)                                          */
-/* ---------------------------------------------------------------------- */
+type SearchResult = {
+  title: string;
+  link: string;
+  snippet: string;
+};
+
+type ContentResult = {
+  title: string;
+  source: string;
+  content: string;
+} | null;
 
 interface SmartOpts {
   apiKey: string;
@@ -314,6 +48,7 @@ interface SmartOpts {
     password?: string;
   };
   useNeo4j?: boolean;
+  serperApiKey?: string;
 }
 
 export class SmartGPT {
@@ -329,6 +64,7 @@ export class SmartGPT {
     if (!opts.apiKey) throw new Error("OPENAI_API_KEY required");
     process.env.OPENAI_API_KEY = opts.apiKey;
     if (opts.googleApiKey) process.env.GOOGLE_API_KEY = opts.googleApiKey;
+    if (opts.serperApiKey) process.env.SERPER_API_KEY = opts.serperApiKey;
 
     // Models setup
     this.reasoningModel = opts.reasoningModel ?? "o4-mini";
@@ -342,7 +78,7 @@ export class SmartGPT {
 
     // Deep exploration setup (if enabled)
     if (opts.deep) {
-      const propose: Propose = async (s, k) => {
+      const propose = async (s: State, k: number) => {
         const arr = await callStructured(
           this.reasoningModel,
           `List ${k} next actions as JSON array for state: ${s.hash()}`,
@@ -359,7 +95,7 @@ export class SmartGPT {
         }));
       };
 
-      const evaluate: Evaluate = async (s) =>
+      const evaluate = async (s: State) =>
         parseFloat(
           (await rawCall({
             model: this.reasoningModel,
@@ -369,7 +105,7 @@ export class SmartGPT {
           })) as string
         );
 
-      const rollout: Policy = async (s) => {
+      const rollout = async (s: State) => {
         const acts = await propose(s, 8);
         return acts[Math.floor(Math.random() * acts.length)];
       };
@@ -396,7 +132,7 @@ export class SmartGPT {
             neo4jUrl,
             neo4j.auth.basic(neo4jUser, neo4jPass),
             {
-              encrypted: false, // Try with explicit 'false' instead of 'ENCRYPTION_OFF'
+              encrypted: false,
               trust: "TRUST_ALL_CERTIFICATES",
             }
           );
@@ -496,8 +232,158 @@ export class SmartGPT {
 
   async webSearch(query: string, k = 5): Promise<string[]> {
     try {
-      // Use the reasoningModel to perform a web search simulation
-      // This approach handles the request as a prompt, asking the model to act as if it had searched the web
+      // Dynamically import node-fetch
+      const { default: fetch } = await import("node-fetch");
+
+      // Step 1: Fetch real search results from Serper API
+      const serperApiKey = process.env.SERPER_API_KEY;
+      if (!serperApiKey) {
+        console.warn(
+          "[SmartGPT] Serper API key not found, using fallback method"
+        );
+        return this.simulateWebSearch(query, k);
+      }
+
+      console.log(`[SmartGPT] Performing web search for: "${query}"`);
+
+      // Create AbortController for timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+      try {
+        const searchResponse = await fetch("https://google.serper.dev/search", {
+          method: "POST",
+          headers: {
+            "X-API-KEY": serperApiKey,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            q: query,
+            num: Math.min(k * 2, 10), // Request more results than needed
+          }),
+          signal: controller.signal,
+        });
+
+        // Clear timeout
+        clearTimeout(timeoutId);
+
+        if (!searchResponse.ok) {
+          throw new Error(
+            `Serper API responded with status: ${searchResponse.status}`
+          );
+        }
+
+        const searchData = (await searchResponse.json()) as {
+          organic?: SearchResult[];
+        };
+
+        // Step 2: Extract and format search results
+        const organicResults = searchData.organic || [];
+        if (!organicResults.length) {
+          return [`No search results found for: ${query}`];
+        }
+
+        // Format initial results
+        const formattedResults = organicResults
+          .slice(0, k)
+          .map((result: SearchResult) => {
+            return `TITLE: ${result.title}\nSOURCE: ${result.link}\nSNIPPET: ${result.snippet}`;
+          });
+
+        // Step 3: Fetch content from top results
+        const contentResults = await Promise.all(
+          organicResults
+            .slice(0, 3)
+            .map(async (result: SearchResult): Promise<ContentResult> => {
+              try {
+                // Create AbortController for timeout
+                const pageController = new AbortController();
+                const pageTimeoutId = setTimeout(
+                  () => pageController.abort(),
+                  5000
+                );
+
+                // Fetch page content
+                const response = await fetch(result.link, {
+                  headers: {
+                    "User-Agent":
+                      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36",
+                  },
+                  signal: pageController.signal,
+                });
+
+                // Clear timeout
+                clearTimeout(pageTimeoutId);
+
+                if (!response.ok) {
+                  return null;
+                }
+
+                const html = await response.text();
+
+                // Extract main content using GPT-4.1
+                const content = await rawCall({
+                  model: this.contextModel,
+                  messages: [
+                    {
+                      role: "system",
+                      content: `Extract and summarize the main content from this HTML. Focus on the main article/content,
+                              ignoring navigation, footers, ads, etc. If the content is relevant to "${query}",
+                              provide a detailed summary of the key information. Return the content in plain text format.`,
+                    },
+                    {
+                      role: "user",
+                      content: html.slice(0, 100000), // Limit initial HTML
+                    },
+                  ],
+                });
+
+                return {
+                  title: result.title,
+                  source: result.link,
+                  content: content as string,
+                };
+              } catch (error) {
+                console.warn(
+                  `[SmartGPT] Error fetching content from ${result.link}:`,
+                  error
+                );
+                return null;
+              }
+            })
+        );
+
+        // Step 4: Combine search results with extracted content
+        const enhancedResults = contentResults
+          .filter(
+            (
+              result
+            ): result is ContentResult & {
+              title: string;
+              source: string;
+              content: string;
+            } => result !== null
+          )
+          .map((result) => {
+            return `TITLE: ${result.title}\nSOURCE: ${result.source}\nCONTENT:\n${result.content}`;
+          });
+
+        // Step 5: Return enhanced or formatted results
+        return enhancedResults.length > 0 ? enhancedResults : formattedResults;
+      } finally {
+        clearTimeout(timeoutId);
+      }
+    } catch (error) {
+      console.error("[SmartGPT] Error in web search:", error);
+      // Fallback to simulated search
+      console.log("[SmartGPT] Falling back to simulated search due to error");
+      return this.simulateWebSearch(query, k);
+    }
+  }
+
+  // Keep the simulation method as a fallback
+  private async simulateWebSearch(query: string, k = 5): Promise<string[]> {
+    try {
       const currentDate = new Date().toISOString().split("T")[0];
       const searchResponse = await rawCall({
         model: this.contextModel,
@@ -528,7 +414,7 @@ export class SmartGPT {
 
       return [`No search results found for: ${query}`];
     } catch (error) {
-      console.error("[SmartGPT] Error in web search:", error);
+      console.error("[SmartGPT] Error in simulated web search:", error);
       return [`Error performing web search: ${(error as Error).message}`];
     }
   }

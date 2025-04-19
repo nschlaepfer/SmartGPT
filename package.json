@@ -1,32 +1,54 @@
 {
   "name": "smartgpt",
-  "version": "1.0.0",
-  "main": "dist/smartgpt.js",
+  "version": "0.7.0",
+  "description": "SmartGPT modular architecture with dual-model pipeline",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "scripts": {
     "build": "tsc",
-    "start": "tsx smartgpt.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "tsx example.ts",
+    "test": "tsx example.ts",
+    "dev": "tsx watch example.ts"
   },
-  "keywords": [],
+  "keywords": [
+    "ai",
+    "llm",
+    "openai",
+    "googleai",
+    "neo4j",
+    "rag"
+  ],
   "author": "",
   "license": "ISC",
-  "description": "",
   "devDependencies": {
-    "@types/better-sqlite3": "^7.6.13",
-    "@types/node": "^22.14.1",
-    "typescript": "^5.8.3"
+    "@types/better-sqlite3": "^7.6.8",
+    "@types/node": "^20.10.5",
+    "@types/uuid": "^9.0.7",
+    "typescript": "^5.3.3"
   },
   "dependencies": {
-    "@ai-sdk/google": "^1.2.11",
-    "@ai-sdk/openai": "^1.3.16",
+    "@ai-sdk/google": "^1.0.0",
+    "@ai-sdk/openai": "^1.0.0",
     "ai": "^4.3.9",
-    "better-sqlite3": "^11.9.1",
-    "dotenv": "^16.5.0",
-    "hnswlib-node": "^3.0.0",
-    "neo4j-driver": "^5.28.1",
-    "openai": "^4.95.1",
-    "tsx": "^4.19.3",
-    "uuid": "^11.1.0",
-    "zod": "^3.24.3"
+    "better-sqlite3": "^9.0.0",
+    "dotenv": "^16.3.1",
+    "hnswlib-node": "^2.1.1",
+    "neo4j-driver": "^5.15.0",
+    "node-fetch": "^3.3.2",
+    "openai": "^4.24.1",
+    "tsx": "^4.7.0",
+    "uuid": "^9.0.1",
+    "zod": "^3.22.4"
   }
 }

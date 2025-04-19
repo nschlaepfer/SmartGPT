@@ -1,5 +1,27 @@
-node_modules/
-dist/
+# Environment variables
 .env
+
+# Build output
+dist/
+
+# Dependencies
+node_modules/
+
+# Database
 *.sqlite
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
 .DS_Store
+Thumbs.db
+
+# IDE files
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+old/

@@ -1,5 +1,7 @@
 import "dotenv/config";
-import { SmartGPT } from "./smartgpt";
+import { SmartGPT } from "./src/index.js";
+import { writeFileSync } from "fs";
+import { resolve } from "path";
 
 // Flag to determine if we should test experimental features
 const ENABLE_EXPERIMENTAL_FEATURES = true;
@@ -127,148 +129,53 @@ async function main() {
     console.log("Answer:", answer2);
     console.log("\n----------------------------\n");
 
-    // Test with a creative question
-    console.log("Basic ask example 3:");
-    const answer3 = await measureExecution("Creative content", async () => {
-      return await smartGPT.ask(
-        "Write a short poem about artificial intelligence."
-      );
-    });
-    console.log("Answer:", answer3);
-    console.log("\n----------------------------\n");
-
-    // Test with a debugging question
-    console.log("Basic ask example 4 (with debug focus):");
-    const answer4 = await measureExecution("Debugging question", async () => {
-      return await smartGPT.ask(
-        "What are the most common issues when implementing LLM systems?"
-      );
-    });
-    console.log("Answer:", answer4);
-    console.log("\n----------------------------\n");
-
-    // =========== Testing with Gemini model (if available) ==========
-    if (geminiGPT !== null) {
-      console.log("\n===== TESTING WITH GEMINI MODEL =====");
-
-      // Basic question with Gemini
-      console.log("\nGemini Model Test:");
-      try {
-        const geminiAnswer = await measureExecution(
-          "Gemini model basic question",
-          async () => {
-            return await geminiGPT!.ask("What is the capital of France?");
-          }
-        );
-        console.log("Gemini Answer:", geminiAnswer);
-      } catch (error: any) {
-        console.error("[DEBUG] Gemini test failed:", error.message);
-        if (error.message.includes("quota") || error.message.includes("429")) {
-          console.log(
-            "[DEBUG] API quota exceeded. You may need to upgrade your Google API plan or wait until quota resets."
-          );
-        }
-      }
-      console.log("\n----------------------------\n");
-    }
-
-    // =========== Testing Search Functionality (with fallback) ==========
-    if (ENABLE_EXPERIMENTAL_FEATURES) {
-      console.log("\n===== TESTING SEARCH FUNCTIONALITY =====");
-
-      // Test search functionality (will use fallback if Neo4j not available)
-      console.log("\nSearch Test:");
-      try {
-        const searchAnswer = await measureExecution("Search test", async () => {
-          // The search method will use the fallback if Neo4j isn't available
-          const results = await smartGPT.search("artificial intelligence", 3);
-          return results;
-        });
-
-        console.log("Search Results:");
-        if (Array.isArray(searchAnswer) && searchAnswer.length > 0) {
-          searchAnswer.forEach((result, i) => {
-            console.log(`\n[Result ${i + 1}]:`);
-            console.log(result);
-          });
-        } else {
-          console.log("No results found");
-        }
-      } catch (error: any) {
-        console.error("[DEBUG] Search test failed:", error.message);
-      }
-      console.log("\n----------------------------\n");
-    }
-
     // =========== Testing Web Search Functionality ==========
     if (ENABLE_EXPERIMENTAL_FEATURES) {
-      console.log("\n===== TESTING WEB SEARCH FUNCTIONALITY =====");
+      console.log("\n===== TESTING ENHANCED WEB SEARCH FUNCTIONALITY =====");
 
       // Test web search functionality
-      console.log("\nWeb Search Test:");
+      console.log("\nEnhanced Web Search Test:");
       try {
         const webSearchResult = await measureExecution(
-          "Web search test",
+          "Enhanced web search test",
           async () => {
-            // Use the new webSearch method
+            // Use the enhanced webSearch method with a current topic
             return await smartGPT.webSearch(
-              "latest developments in artificial intelligence",
+              "latest developments in large language models",
               3
             );
           }
         );
 
-        console.log("Web Search Results:");
+        console.log("Enhanced Web Search Results:");
         if (Array.isArray(webSearchResult) && webSearchResult.length > 0) {
           webSearchResult.forEach((result, i) => {
             console.log(`\n[Result ${i + 1}]:`);
-            console.log(result);
+            // Print first 500 chars of each result to avoid console spam
+            console.log(
+              result.length > 500 ? result.substring(0, 500) + "..." : result
+            );
+            console.log(`\n[Full content length: ${result.length} characters]`);
           });
+
+          // Save results to a file for inspection
+          writeFileSync(
+            "web_search_results.txt",
+            webSearchResult.join("\n\n" + "-".repeat(80) + "\n\n")
+          );
+          console.log(
+            "\n✅ Full results saved to web_search_results.txt for detailed review"
+          );
         } else {
           console.log("No web search results found");
         }
       } catch (error: any) {
-        console.error("[DEBUG] Web search test failed:", error.message);
+        console.error(
+          "[DEBUG] Enhanced web search test failed:",
+          error.message
+        );
       }
       console.log("\n----------------------------\n");
-    }
-
-    // =========== Testing the ThoughtChain Feature (with fallback) ==========
-    console.log("\n===== TESTING THOUGHTCHAIN (WITH FALLBACK) =====");
-
-    try {
-      console.log(
-        "Running thoughtChain with query: 'Explain HippoRAG in plain English'"
-      );
-
-      const thoughtChainResult = await measureExecution(
-        "ThoughtChain execution",
-        async () => {
-          return await smartGPT.thoughtChain(
-            "Explain HippoRAG in plain English",
-            3
-          );
-        }
-      );
-
-      console.log("\nThoughtChain - Best answer:");
-      console.log(thoughtChainResult.best);
-
-      // Check Neo4j availability using the proper method
-      if (smartGPT.isNeo4jAvailable()) {
-        console.log(
-          "\n[DEBUG] Full ThoughtChain results available (Neo4j connected)"
-        );
-        console.log(
-          `[DEBUG] Number of drafts: ${thoughtChainResult.drafts.length}`
-        );
-      } else {
-        console.log(
-          "\n[DEBUG] Simplified ThoughtChain results (Neo4j fallback mode)"
-        );
-      }
-    } catch (error: any) {
-      console.error("[DEBUG] ThoughtChain test failed:", error.message);
     }
   } catch (error) {
     console.error("Error in main execution:", error);
@@ -286,7 +193,16 @@ async function main() {
         1024
       ).toFixed(2)} MB`
     );
+
+    // Add a short delay to allow any pending operations to complete
+    console.log("\n[DEBUG] Tests complete! Exiting...");
+    setTimeout(() => {
+      process.exit(0);
+    }, 1000);
   }
 }
 
-main();
+main().catch((error) => {
+  console.error("Unhandled error in main:", error);
+  process.exit(1);
+});
