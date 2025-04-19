@@ -200,7 +200,7 @@ export async function google_gemini(
 export async function groq_completion(
   params: z.infer<typeof groqCompletionInput>
 ): Promise<z.infer<typeof groqCompletionOutput>> {
-  const { prompt, model = "llama4-70b" } = params;
+  const { prompt, model = "llama-3.3-70b-versatile" } = params;
 
   try {
     // Check if groq-sdk is installed

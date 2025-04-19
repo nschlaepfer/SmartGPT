@@ -119,10 +119,10 @@ curl -X POST http://localhost:4141/mcp/invoke \
 * ThoughtChain - multi-step reasoning pipeline for improved answers
 * Real-time web search integration with Serper API
 * Modular architecture for better maintainability
-* **NEW:** Secure macOS sandboxed shell execution (with automatic fallback to regular execution)
-* **NEW:** Multi-provider AI model tools (OpenAI, Anthropic, Google Gemini, Groq)
-* **NEW:** File parsing tools for CSV, JSON, Markdown, and PDF files
-* **NEW:** MCP Server for exposing tools via REST API
+* Secure macOS sandboxed shell execution (with automatic fallback to regular execution)
+* Multi-provider AI model tools (OpenAI, Anthropic, Google Gemini, Groq)
+* File parsing tools for CSV, JSON, Markdown, and PDF files
+* MCP Server for exposing tools via REST API
 
 ## Requirements
 
@@ -256,19 +256,19 @@ const openaiResult = await openai_completion({
 // Anthropic Claude
 const claudeResult = await anthropic_completion({
   prompt: "Explain quantum computing",
-  model: "claude-2" // optional, defaults to "claude-2"
+  model: "claude-3-7-sonnet-latest" //
 });
 
 // Google Gemini
 const geminiResult = await google_gemini({
   prompt: "Write a poem about AI",
-  model: "gemini-2.5pro" // optional, defaults to "gemini-2.5pro"
+  model: "gemini-2.5-pro" // optional, defaults to "gemini-2.5pro"
 });
 
 // Groq (Llama 4, etc)
 const groqResult = await groq_completion({
   prompt: "Summarize the history of AI",
-  model: "llama4-70b" // optional, defaults to "llama4-70b"
+  model: "llama-3.3-70b-versatile" // optional, defaults to
 });
 ```
 
@@ -299,7 +299,7 @@ const pdfText = await read_pdf({ filePath: 'document.pdf' });
 
 ## MCP Server (REST API)
 
-The MCP (Master Control Program) server exposes all SmartGPT functionality via a REST API, making it ideal for:
+The MCP  server exposes all SmartGPT functionality via a REST API, making it ideal for:
 
 * Building web applications with AI capabilities
 * Creating chat interfaces backed by powerful reasoning
@@ -315,7 +315,7 @@ npm run mcp-server
 This starts an Express server on port 4141 that provides comprehensive endpoints:
 
 ```
-🧠 SmartGPT Master Control Program running at http://localhost:4141
+🧠 SmartGPT MCP running at http://localhost:4141
 Available endpoints:
   GET  /                  - System information and documentation
   GET  /api/readme        - Full README documentation (formats: json, html, markdown)
