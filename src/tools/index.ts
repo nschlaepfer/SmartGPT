@@ -15,6 +15,9 @@ export {
   groq_completion,
 } from "./models.js";
 
+// Web search tool
+export { web_search } from "./web_search.js";
+
 // Re-export config
 export { toolsConfig };
 

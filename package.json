@@ -25,6 +25,7 @@
     "original": "tsx examples/original-style.ts",
     "test-shell": "tsx examples/test-shell.ts",
     "mcp-server": "tsx smartgpt_mcp_server.ts",
+    "web-search": "tsx examples/web-search-example.ts",
     "sandbox": "tsx -e \"import { macos_shell } from './src/tools/index.js'; macos_shell({command: 'ls -la'}).then(console.log)\""
   },
   "keywords": [

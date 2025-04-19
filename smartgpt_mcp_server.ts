@@ -44,6 +44,26 @@ const smartGPT = new SmartGPT(smartGPTConfig);
 const app = express();
 app.use(express.json({ limit: "2mb" }));
 
+// Add CORS headers for better compatibility with Cursor
+app.use(
+  (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    res.header(
+      "Access-Control-Allow-Headers",
+      "Origin, X-Requested-With, Content-Type, Accept"
+    );
+
+    // Handle preflight requests
+    if (req.method === "OPTIONS") {
+      res.status(200).end();
+      return;
+    }
+
+    next();
+  }
+);
+
 // System information
 const systemInfo = {
   name: "SmartGPT Control Interface",
@@ -64,6 +84,7 @@ const systemInfo = {
       "Run a multi-step reasoning process with drafts and refinement",
     "/api/websearch": "Perform a web search with real-time information",
     "/api/system": "Get detailed system configuration and status",
+    "/sse": "Server-Sent Events endpoint for Cursor MCP integration",
   },
 };
 
@@ -190,6 +211,123 @@ app.post("/mcp/invoke", async (req, res) => {
   }
 });
 
+// === CURSOR MCP INTEGRATION USING SSE ===
+
+// Format tools for Cursor MCP
+const cursorTools = toolsConfig.map((tool) => ({
+  name: tool.name,
+  description: tool.description,
+  parameters: {
+    type: "object",
+    properties: Object.fromEntries(
+      Object.entries(tool.schema.input.shape).map(
+        ([key, schema]: [string, any]) => [
+          key,
+          {
+            type: schema._def.typeName === "ZodNumber" ? "number" : "string",
+            description: schema.description || `Parameter: ${key}`,
+          },
+        ]
+      )
+    ),
+    required: Object.keys(tool.schema.input.shape).filter(
+      (key) =>
+        !(tool.schema.input.shape as Record<string, any>)[key].isOptional()
+    ),
+  },
+}));
+
+// Handle SSE connection from Cursor
+app.get("/sse", (req, res) => {
+  const headers = {
+    "Content-Type": "text/event-stream",
+    Connection: "keep-alive",
+    "Cache-Control": "no-cache",
+    "Access-Control-Allow-Origin": "*",
+  };
+  res.writeHead(200, headers);
+
+  // Send initial tools data
+  const toolsData = {
+    tools: cursorTools,
+    resources: {},
+    prompts: {},
+  };
+  res.write(`data: ${JSON.stringify(toolsData)}\n\n`);
+
+  // Send heartbeat every 15 seconds to keep connection alive
+  const heartbeatInterval = setInterval(() => {
+    res.write("data: heartbeat\n\n");
+  }, 15000);
+
+  // Handle client disconnect
+  req.on("close", () => {
+    clearInterval(heartbeatInterval);
+    log("Client disconnected from SSE");
+  });
+
+  log("Client connected to SSE endpoint");
+});
+
+// Handle tool invocation from Cursor - keep both endpoints for compatibility
+app.post("/invoke", async (req, res) => {
+  try {
+    const { name, parameters } = req.body;
+    log(`Cursor tool invocation: ${name} with params:`, parameters);
+
+    // Import the tool function dynamically
+    const toolFunction = (await import(`./src/tools/index.js`))[name];
+    if (!toolFunction) {
+      res.status(404).json({
+        error: `Tool not found: ${name}`,
+        message: `The tool '${name}' was not found in the tools registry.`,
+      });
+      return;
+    }
+
+    // Execute the tool
+    const result = await toolFunction(parameters);
+    res.json(result);
+  } catch (error) {
+    log(`Tool invocation error:`, error);
+    res.status(500).json({
+      error: "Tool execution failed",
+      message: (error as Error).message,
+    });
+  }
+});
+
+// Add Cursor-specific MCP endpoint format for tool invocation
+app.post("/mcp/invoke/call", async (req, res) => {
+  try {
+    const { name, parameters } = req.body;
+    log(
+      `Cursor tool invocation (call format): ${name} with params:`,
+      parameters
+    );
+
+    // Import the tool function dynamically
+    const toolFunction = (await import(`./src/tools/index.js`))[name];
+    if (!toolFunction) {
+      res.status(404).json({
+        error: `Tool not found: ${name}`,
+        message: `The tool '${name}' was not found in the tools registry.`,
+      });
+      return;
+    }
+
+    // Execute the tool
+    const result = await toolFunction(parameters);
+    res.json(result);
+  } catch (error) {
+    log(`Tool invocation error:`, error);
+    res.status(500).json({
+      error: "Tool execution failed",
+      message: (error as Error).message,
+    });
+  }
+});
+
 // === DUAL-MODEL PIPELINE ENDPOINTS ===
 
 // Ask endpoint (uses the dual-model pipeline)
@@ -307,7 +445,7 @@ async function main() {
     // Start server
     app.listen(port, () => {
       console.log(
-        `🧠 SmartGPT Master Control Program running at http://localhost:${port}`
+        `🧠 SmartGPT Model Context Protocol running at http://localhost:${port}`
       );
       console.log("Available endpoints:");
       console.log(
@@ -320,6 +458,9 @@ async function main() {
         "  GET  /api/system        - Detailed system status and configuration"
       );
       console.log("  GET  /mcp/manifest      - List all available tools");
+      console.log(
+        "  GET  /sse               - Server-Sent Events endpoint for Cursor MCP integration"
+      );
       console.log("  POST /mcp/invoke        - Execute a specific tool");
       console.log(
         "  POST /api/ask           - Use dual-model pipeline for questions"
