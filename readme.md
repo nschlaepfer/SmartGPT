@@ -6,6 +6,7 @@ A TypeScript library for building advanced AI applications with multiple LLM pro
 
 * **Dual-Model AI Pipeline**: Combines fast reasoning and deep context models for optimal results
 * **REST API Server**: Full system control through comprehensive HTTP endpoints (MCP Server)
+* **Cursor Integration**: Direct integration with Cursor IDE through MCP stdio mode
 * **Multi-Provider Support**: OpenAI, Google AI, Anthropic, and Groq models
 * **Advanced Reasoning**: ThoughtChain for multi-step reasoning with self-critique
 * **Tool Integration**: Secure shell execution, file parsing, and web search tools
@@ -39,7 +40,7 @@ SmartGPT uses a sophisticated dual-model pipeline architecture that leverages th
 
 ## Usage Options
 
-SmartGPT can be used in two main ways:
+SmartGPT can be used in three main ways:
 
 ### 1. As a TypeScript Library
 
@@ -61,13 +62,15 @@ const smartGPT = new SmartGPT({
 const answer = await smartGPT.ask('What is quantum computing?');
 ```
 
-### 2. As a REST API Server (MCP)
+### 2. As a REST API Server (MCP HTTP Mode)
 
 Run SmartGPT as a standalone server exposing all functionality through REST API endpoints:
 
 ```bash
-# Start the MCP server
-npm run mcp-server
+# Start the MCP server in HTTP mode
+npm run server
+# or
+npx tsx smartgpt_mcp_server_stdio.ts
 ```
 
 This starts a server on port 4141 with comprehensive endpoints:
@@ -83,31 +86,44 @@ This starts a server on port 4141 with comprehensive endpoints:
 | `/api/thoughtchain` | POST | Multi-step reasoning with refinement |
 | `/api/websearch` | POST | Search the web for real-time information |
 
-#### API Examples
+### 3. As a Cursor IDE Extension (MCP STDIO Mode)
 
-**Ask a question:**
-
-```bash
-curl -X POST http://localhost:4141/api/ask \
-  -H "Content-Type: application/json" \
-  -d '{"query":"What is quantum computing?"}'
-```
-
-**Run multi-step reasoning:**
+Run SmartGPT as an MCP server in stdio mode for direct integration with the Cursor IDE:
 
 ```bash
-curl -X POST http://localhost:4141/api/thoughtchain \
-  -H "Content-Type: application/json" \
-  -d '{"query":"Explain the implications of quantum computing on cryptography", "drafts": 3}'
+# Start the MCP server in stdio mode
+npx tsx smartgpt_mcp_server_stdio.ts --stdio
 ```
 
-**Execute a tool:**
+Or configure it in your Cursor MCP settings in `~/.cursor/mcp.json`:
 
-```bash
-curl -X POST http://localhost:4141/mcp/invoke \
-  -H "Content-Type: application/json" \
-  -d '{"tool":"openai_completion", "input":{"prompt":"What is the capital of France?"}}'
+```json
+{
+  "mcpServers": {
+    "smartgpt": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "tsx",
+        "<path_to_script>/smartgpt_mcp_server_stdio.ts",
+        "--stdio"
+      ],
+      "description": "SmartGPT dual-model AI pipeline with comprehensive toolchain",
+      "disabled": false,
+      "category": "ai-reasoning",
+      "autoApprove": ["ask", "thoughtchain", "websearch"],
+      "startup": "auto"
+    }
+  }
+}
 ```
+
+This allows you to use SmartGPT's powerful tools directly within Cursor, including:
+
+* The dual-model `ask` tool for enhanced reasoning
+* The `thoughtchain` tool for complex multi-step reasoning
+* The `websearch` tool for real-time internet information
+* All other utility tools for shell commands, file parsing, etc.
 
 ## Detailed Features
 
@@ -297,19 +313,25 @@ const markdownContent = await read_markdown({ filePath: 'README.md' });
 const pdfText = await read_pdf({ filePath: 'document.pdf' });
 ```
 
-## MCP Server (REST API)
+## MCP Server (REST API and Cursor Integration)
 
-The MCP  server exposes all SmartGPT functionality via a REST API, making it ideal for:
+The SmartGPT MCP server exposes all functionality through two modes of operation:
+
+### HTTP Mode
+
+The HTTP mode provides a REST API, making it ideal for:
 
 * Building web applications with AI capabilities
 * Creating chat interfaces backed by powerful reasoning
 * Integrating with other programming languages through HTTP
 * Centralized AI service for multiple client applications
 
-### Starting the Server
+#### Starting the HTTP Server
 
 ```bash
-npm run mcp-server
+npm run server
+# or
+npx tsx smartgpt_mcp_server_stdio.ts
 ```
 
 This starts an Express server on port 4141 that provides comprehensive endpoints:
@@ -321,13 +343,14 @@ Available endpoints:
   GET  /api/readme        - Full README documentation (formats: json, html, markdown)
   GET  /api/system        - Detailed system status and configuration
   GET  /mcp/manifest      - List all available tools
+  GET  /sse               - Server-Sent Events endpoint for Cursor MCP integration
   POST /mcp/invoke        - Execute a specific tool
   POST /api/ask           - Use dual-model pipeline for questions
   POST /api/thoughtchain  - Multi-step reasoning with refinement
   POST /api/websearch     - Search the web for real-time information
 ```
 
-### API Usage Examples
+#### API Usage Examples
 
 **Get system information:**
 
@@ -395,6 +418,54 @@ curl -X POST http://localhost:4141/mcp/invoke \
   -d '{"tool":"read_markdown","input":{"filePath":"README.md"}}'
 ```
 
+### STDIO Mode (Cursor Integration)
+
+The STDIO mode enables direct integration with the Cursor IDE, allowing you to:
+
+* Use SmartGPT's powerful dual-model pipeline directly within your code editor
+* Access the ThoughtChain reasoning capabilities during development
+* Perform web searches without leaving your IDE
+* Execute any of the SmartGPT tools with proper context awareness
+
+#### Starting the STDIO Server
+
+To run the server in STDIO mode manually:
+
+```bash
+npx tsx smartgpt_mcp_server_stdio.ts --stdio
+```
+
+For integration with Cursor, configure the MCP in your `~/.cursor/mcp.json` file:
+
+```json
+{
+  "mcpServers": {
+    "smartgpt": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "tsx",
+        "<path_to_script>/smartgpt_mcp_server_stdio.ts",
+        "--stdio"
+      ],
+      "description": "SmartGPT dual-model AI pipeline with comprehensive toolchain",
+      "disabled": false,
+      "category": "ai-reasoning",
+      "autoApprove": ["ask", "thoughtchain", "websearch"],
+      "startup": "auto"
+    }
+  }
+}
+```
+
+This configuration:
+
+* Sets up SmartGPT as an available MCP server in Cursor
+* Auto-approves certain tools for streamlined workflow
+* Automatically starts the server when Cursor launches (with `startup: "auto"`)
+
+Once configured, you can access SmartGPT's tools through Cursor's MCP interface or directly through the Claude assistant, which will have access to all registered tools.
+
 ## Examples
 
 The project includes several examples showing how to use SmartGPT:
@@ -440,6 +511,15 @@ npm run check-env
 # Test the macOS shell command execution
 npm run test-shell
 
-# Start the MCP server
-npm run mcp-server
+# Start the MCP server in HTTP mode
+npm run server
+
+# Start the MCP server in development mode with debug output
+npm run server:dev
+
+# Start the MCP server on a custom port
+npm run server:port # Uses port 8080
+
+# Start the MCP server in stdio mode (for Cursor integration)
+npx tsx smartgpt_mcp_server_stdio.ts --stdio
 ```
