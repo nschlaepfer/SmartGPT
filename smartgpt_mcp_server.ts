@@ -9,7 +9,7 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { z, ZodRawShape } from "zod"; // Import Zod
 import * as dotenv from "dotenv";
 import debug from "debug";
-import { toolsConfig } from "./src/tools/index.js"; // Assuming toolsConfig is exported
+import { toolsConfig } from "./src/tools/index.ts"; // Assuming toolsConfig is exported
 import { fileURLToPath } from "url";
 import path from "path";
 
@@ -44,7 +44,7 @@ const server = new McpServer({
 // Function to register tools with the MCP server
 async function registerTools(mcpServer: McpServer) {
   console.error(`[SmartGPT MCP] Registering ${toolsConfig.length} tools...`);
-  const toolFunctions = await import("./src/tools/index.js");
+  const toolFunctions = await import("./src/tools/index.ts");
 
   for (const tool of toolsConfig) {
     console.error(`[SmartGPT MCP] Registering tool: ${tool.name}`);
