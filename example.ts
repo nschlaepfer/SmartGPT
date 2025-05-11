@@ -1,7 +1,7 @@
 import "dotenv/config";
 import { SmartGPT } from "./src/index.js";
-import { writeFileSync } from "fs";
-import { resolve } from "path";
+import { writeFileSync, existsSync, mkdirSync } from "fs";
+import { resolve, join } from "path";
 
 // Flag to determine if we should test experimental features
 const ENABLE_EXPERIMENTAL_FEATURES = true;
@@ -158,13 +158,30 @@ async function main() {
             console.log(`\n[Full content length: ${result.length} characters]`);
           });
 
-          // Save results to a file for inspection
+          // Create search results directory if it doesn't exist
+          const searchResultsDir = join(
+            process.cwd(),
+            "data",
+            "search_results"
+          );
+          if (!existsSync(searchResultsDir)) {
+            mkdirSync(searchResultsDir, { recursive: true });
+          }
+
+          // Generate a timestamped filename
+          const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+          const searchResultsFile = join(
+            searchResultsDir,
+            `search_results_${timestamp}.txt`
+          );
+
+          // Save results to the file for inspection
           writeFileSync(
-            "web_search_results.txt",
+            searchResultsFile,
             webSearchResult.join("\n\n" + "-".repeat(80) + "\n\n")
           );
           console.log(
-            "\n✅ Full results saved to web_search_results.txt for detailed review"
+            `\n✅ Full results saved to ${searchResultsFile} for detailed review`
           );
         } else {
           console.log("No web search results found");

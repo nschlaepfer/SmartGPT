@@ -108,6 +108,12 @@ Or configure it in your Cursor MCP settings in `~/.cursor/mcp.json`:
         "<path_to_script>/smartgpt_mcp_server_stdio.ts",
         "--stdio"
       ],
+      "env": {
+        "NODE_ENV": "development",
+        "OPENAI_API_KEY": "your_openai_api_key_here",
+        "GOOGLE_GENERATIVE_AI_API_KEY": "your_google_api_key_here",
+        "SERPER_API_KEY": "your_serper_api_key_here"
+      },
       "description": "SmartGPT dual-model AI pipeline with comprehensive toolchain",
       "disabled": false,
       "category": "ai-reasoning",
@@ -118,12 +124,17 @@ Or configure it in your Cursor MCP settings in `~/.cursor/mcp.json`:
 }
 ```
 
-This allows you to use SmartGPT's powerful tools directly within Cursor, including:
+**Important**: You must add your own API keys directly in the MCP configuration file as shown above. Replace the placeholder values (`your_openai_api_key_here`, etc.) with your actual API keys. This ensures the SmartGPT MCP server can access these keys when running in Cursor or Claude Desktop.
 
-* The dual-model `ask` tool for enhanced reasoning
-* The `thoughtchain` tool for complex multi-step reasoning
-* The `websearch` tool for real-time internet information
-* All other utility tools for shell commands, file parsing, etc.
+The same configuration can be added to Claude Desktop's configuration file at `~/Library/Application Support/Claude/claude_desktop_config.json` for integration with Claude Desktop.
+
+This configuration:
+
+* Sets up SmartGPT as an available MCP server in Cursor
+* Auto-approves certain tools for streamlined workflow
+* Automatically starts the server when Cursor launches (with `startup: "auto"`)
+
+Once configured, you can access SmartGPT's tools through Cursor's MCP interface or directly through the Claude assistant, which will have access to all registered tools.
 
 ## Detailed Features
 
@@ -448,6 +459,12 @@ For integration with Cursor, configure the MCP in your `~/.cursor/mcp.json` file
         "<path_to_script>/smartgpt_mcp_server_stdio.ts",
         "--stdio"
       ],
+      "env": {
+        "NODE_ENV": "development",
+        "OPENAI_API_KEY": "your_openai_api_key_here",
+        "GOOGLE_GENERATIVE_AI_API_KEY": "your_google_api_key_here",
+        "SERPER_API_KEY": "your_serper_api_key_here"
+      },
       "description": "SmartGPT dual-model AI pipeline with comprehensive toolchain",
       "disabled": false,
       "category": "ai-reasoning",
@@ -457,6 +474,10 @@ For integration with Cursor, configure the MCP in your `~/.cursor/mcp.json` file
   }
 }
 ```
+
+**Important**: You must add your own API keys directly in the MCP configuration file as shown above. Replace the placeholder values (`your_openai_api_key_here`, etc.) with your actual API keys. This ensures the SmartGPT MCP server can access these keys when running in Cursor or Claude Desktop.
+
+The same configuration can be added to Claude Desktop's configuration file at `~/Library/Application Support/Claude/claude_desktop_config.json` for integration with Claude Desktop.
 
 This configuration:
 

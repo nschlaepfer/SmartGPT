@@ -34,7 +34,7 @@ type ContentResult = {
   content: string;
 } | null;
 
-interface SmartOpts {
+export interface SmartOpts {
   apiKey: string;
   googleApiKey?: string;
   reasoningModel?: string; // default o4-mini
@@ -49,6 +49,7 @@ interface SmartOpts {
   };
   useNeo4j?: boolean;
   serperApiKey?: string;
+  dbPath?: string; // Add new option for database path
 }
 
 export class SmartGPT {
@@ -59,10 +60,17 @@ export class SmartGPT {
   private readonly reasoningModel: string;
   private readonly contextModel: string;
   private deepx: DeepExplorer | null = null;
+  private hasValidApiKey = false;
 
   constructor(private opts: SmartOpts) {
-    if (!opts.apiKey) throw new Error("OPENAI_API_KEY required");
-    process.env.OPENAI_API_KEY = opts.apiKey;
+    // Check for API key but don't throw, just set a flag indicating API key status
+    this.hasValidApiKey = !!opts.apiKey && opts.apiKey.length > 0;
+
+    // Set environment variables if keys are provided
+    if (this.hasValidApiKey) {
+      process.env.OPENAI_API_KEY = opts.apiKey;
+    }
+
     if (opts.googleApiKey)
       process.env.GOOGLE_GENERATIVE_AI_API_KEY = opts.googleApiKey;
     if (opts.serperApiKey) process.env.SERPER_API_KEY = opts.serperApiKey;
@@ -119,7 +127,10 @@ export class SmartGPT {
   private async initializeAsync() {
     try {
       const dim = await this.embedder.dim();
-      this.memory = new MemoryStore(dim);
+      // Check for environment variable DB_PATH first, then option, then default
+      const dbPath = process.env.DB_PATH || this.opts.dbPath || "memory.sqlite";
+      console.log(`[SmartGPT] Using database path: ${dbPath}`);
+      this.memory = new MemoryStore(dim, dbPath);
 
       // Setup retriever once memory is initialized
       if (this.opts.useNeo4j !== false && this.opts.neo4j) {
@@ -173,6 +184,11 @@ export class SmartGPT {
 
   /* ---------------- Dual‑step helper ---------------- */
   private async thinkAndRefine(qSystem: string | null, userMsg: string) {
+    // Check if API key is available
+    if (!this.hasValidApiKey) {
+      throw new Error("OPENAI_API_KEY required");
+    }
+
     // 1️⃣ Draft with reasoningModel (fast reasoning, e.g. o4‑mini)
     const messages: ChatMsg[] = [];
     if (qSystem) {

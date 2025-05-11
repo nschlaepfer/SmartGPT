@@ -3,6 +3,39 @@ import { z } from "zod";
 // Define Zod schemas for tool inputs and outputs
 // These will be used for validation and type safety
 
+// SmartGPT Answer Tool
+export const smartGptAnswerInput = z.object({
+  query: z
+    .string()
+    .describe("The question or request to answer using SmartGPT"),
+});
+
+export const smartGptAnswerOutput = z.object({
+  answer: z.string().describe("The answer from SmartGPT"),
+  confidence: z.number().optional().describe("Confidence score (0-1)"),
+});
+
+// SmartGPT Pro Answer Tool
+export const smartGptProAnswerInput = z.object({
+  query: z
+    .string()
+    .describe("The question or request to answer using SmartGPT Pro"),
+  depth: z
+    .number()
+    .optional()
+    .describe("Reasoning depth level (1-5, default: 3)"),
+});
+
+export const smartGptProAnswerOutput = z.object({
+  answer: z.string().describe("The comprehensive answer from SmartGPT Pro"),
+  reasoning: z.string().optional().describe("Step-by-step reasoning process"),
+  sources: z
+    .array(z.string())
+    .optional()
+    .describe("Sources used to generate the answer"),
+  confidence: z.number().optional().describe("Confidence score (0-1)"),
+});
+
 // MacOS Shell Tool
 export const macosShellInput = z.object({
   command: z.string().describe("The shell command to execute."),
@@ -133,8 +166,28 @@ export const readPdfOutput = z.object({
   content: z.string().describe("The extracted text content of the PDF."),
 });
 
+// Import AZR schemas
+import { azrInput, azrOutput } from "./azr.js";
+
 // Tool metadata in format compatible with tools.json
 export const toolsConfig = [
+  {
+    name: "smartgpt_answer",
+    description: "Get a concise, accurate answer using SmartGPT intelligence",
+    schema: {
+      input: smartGptAnswerInput,
+      output: smartGptAnswerOutput,
+    },
+  },
+  {
+    name: "smartgpt_pro_answer",
+    description:
+      "Get a comprehensive answer with deep reasoning using SmartGPT Pro intelligence",
+    schema: {
+      input: smartGptProAnswerInput,
+      output: smartGptProAnswerOutput,
+    },
+  },
   {
     name: "macos_shell",
     description:
@@ -221,6 +274,15 @@ export const toolsConfig = [
     schema: {
       input: readPdfInput,
       output: readPdfOutput,
+    },
+  },
+  {
+    name: "absolute_zero_reasoner",
+    description:
+      "Solve reasoning problems using Absolute Zero Reasoner's self-evolving approach",
+    schema: {
+      input: azrInput,
+      output: azrOutput,
     },
   },
 ];

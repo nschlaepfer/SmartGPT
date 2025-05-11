@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// smartgpt_mcp_server.ts — MCP (Master Control Program) server for SmartGPT
+// SmartGPT MCP Server — Core intelligence tools for AI assistants
 // ============================================================================
 // Implements the Model Context Protocol for SmartGPT tools using stdio.
 // ============================================================================
@@ -12,13 +12,38 @@ import debug from "debug";
 import { toolsConfig } from "./src/tools/index.ts"; // Assuming toolsConfig is exported
 import { fileURLToPath } from "url";
 import path from "path";
+import fs from "fs";
+import { createServer, IncomingMessage, ServerResponse } from "http";
+import { Server, WebSocketServer } from "ws";
+import { SmartGPT } from "./src/index.js";
+import { MemoryStore } from "./src/memory/memory.js";
 
 // ES Module replacement for __filename and __dirname
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Load environment variables
-dotenv.config();
+// Load environment variables from .env file (but don't require them)
+const envResult = dotenv.config();
+if (envResult.error) {
+  console.error(
+    "[SmartGPT] Warning: Could not load .env file:",
+    envResult.error.message
+  );
+} else {
+  console.error("[SmartGPT] Successfully loaded .env file");
+}
+
+// Log API key status
+console.error(
+  `[SmartGPT] OpenAI API key present: ${!!process.env.OPENAI_API_KEY}`
+);
+console.error(
+  `[SmartGPT] Google API key present: ${!!process.env
+    .GOOGLE_GENERATIVE_AI_API_KEY}`
+);
+console.error(
+  `[SmartGPT] Serper API key present: ${!!process.env.SERPER_API_KEY}`
+);
 
 const log = debug("smartgpt:mcp");
 // Use console.error for logs to ensure they appear in Cursor's MCP output
@@ -30,151 +55,287 @@ if (!process.env.DEBUG) {
   debug.log = console.error.bind(console);
 }
 
-// --- Removed SmartGPT instance initialization here, as tools might handle their own state ---
-// If SmartGPT class instance is needed globally by tools, it should be initialized here
-// and potentially passed to tool handlers if they require it.
-// const smartGPT = new SmartGPT(smartGPTConfig); // Example if needed
+// Get package version
+const packageJson = JSON.parse(
+  fs.readFileSync(path.join(__dirname, "package.json"), "utf8")
+);
+const version = packageJson.version || "0.7.0";
 
-// MCP Server Definition
-const server = new McpServer({
-  name: "smartgpt-mcp-server",
-  version: "0.7.0", // Consider pulling from package.json
+// Ensure data directory exists
+const dataDir = path.join(process.cwd(), "data");
+if (!fs.existsSync(dataDir)) {
+  fs.mkdirSync(dataDir, { recursive: true });
+}
+
+// Use absolute path for database
+const dbPath = path.join(dataDir, "memory.sqlite");
+
+// Initialize SmartGPT
+const smartGPT = new SmartGPT({
+  apiKey: process.env.OPENAI_API_KEY || "",
+  useNeo4j: false,
 });
 
-// Function to register tools with the MCP server
-async function registerTools(mcpServer: McpServer) {
-  console.error(`[SmartGPT MCP] Registering ${toolsConfig.length} tools...`);
-  const toolFunctions = await import("./src/tools/index.ts");
+// Register tools
+console.log("[SmartGPT] Registering tool: smartgpt_pro_answer");
 
-  for (const tool of toolsConfig) {
-    console.error(`[SmartGPT MCP] Registering tool: ${tool.name}`);
-    const toolHandler = toolFunctions[tool.name];
-
-    if (!toolHandler) {
-      console.error(
-        `[SmartGPT MCP] [ERROR] Handler function not found for tool: ${tool.name}`
-      );
-      continue; // Skip registration if handler is missing
-    }
-
-    // Ensure the schema is a Zod object schema
-    const inputSchema = tool.schema.input;
-    if (!(inputSchema instanceof z.ZodObject)) {
-      console.error(
-        `[SmartGPT MCP] [ERROR] Tool ${tool.name} schema is not a ZodObject. Skipping.`
-      );
-      continue;
-    }
-
+// Register the tools with appropriate handlers
+const tools = {
+  smartgpt_answer: async ({ query }: { query: string }) => {
     try {
-      // Directly use the Zod schema shape
-      mcpServer.tool(
-        tool.name,
-        tool.description,
-        inputSchema.shape as ZodRawShape, // Use the shape directly
-        async (args: Record<string, any>) => {
-          console.error(`[SmartGPT MCP] Invoking tool: ${tool.name}`);
-          try {
-            // Validate input arguments using the tool's full schema
-            const validatedArgs = inputSchema.parse(args);
-            const result = await toolHandler(validatedArgs); // Pass validated args
-
-            // Ensure the result is serializable and fits MCP expectations
-            // The SDK expects a specific format, often { content: [{ type: 'text', text: '...' }] }
-            // Adjust this based on how your tools return results.
-            // Simple example: assume tools return an object or string
-            let outputText = "";
-            if (typeof result === "string") {
-              outputText = result;
-            } else if (typeof result === "object" && result !== null) {
-              outputText = JSON.stringify(result, null, 2);
-            } else {
-              outputText = String(result); // Fallback
-            }
-
-            // Limit output size if necessary
-            const MAX_OUTPUT_LENGTH = 10000; // Example limit
-            if (outputText.length > MAX_OUTPUT_LENGTH) {
-              outputText =
-                outputText.substring(0, MAX_OUTPUT_LENGTH) + "... (truncated)";
-            }
-
-            console.error(
-              `[SmartGPT MCP] Tool ${tool.name} invocation successful.`
-            );
-            // Format the output for MCP
-            return {
-              content: [
-                {
-                  type: "text",
-                  text: outputText,
-                },
-              ],
-            };
-          } catch (error: any) {
-            console.error(
-              `[SmartGPT MCP] [ERROR] Error executing tool ${tool.name}:`,
-              error
-            );
-            // Return error information in MCP format
-            return {
-              content: [
-                {
-                  type: "text",
-                  text: `Error executing tool ${tool.name}: ${error.message}`,
-                },
-              ],
-              isError: true,
-            };
-          }
-        }
-      );
-    } catch (registrationError: any) {
-      console.error(
-        `[SmartGPT MCP] [ERROR] Failed to register tool ${tool.name}:`,
-        registrationError
-      );
+      const answer = await smartGPT.answer(query);
+      return {
+        answer: answer,
+        confidence: 0.8,
+        sources: [],
+      };
+    } catch (error) {
+      console.error("Error in smartgpt_answer:", error);
+      return {
+        answer: "Sorry, an error occurred while processing your request.",
+        confidence: 0,
+        sources: [],
+      };
     }
-  }
-  console.error("[SmartGPT MCP] Tool registration complete.");
-}
+  },
 
-// Main function to set up and run the server
-async function main() {
-  console.error("[SmartGPT MCP] Initializing server...");
+  smartgpt_pro_answer: async ({
+    query,
+    depth = 3,
+  }: {
+    query: string;
+    depth?: number;
+  }) => {
+    try {
+      // Get answer with sources and reasoning
+      const result = await smartGPT.pro(query, {
+        depth: Math.min(Math.max(1, depth), 5),
+      });
+      return {
+        answer: result.answer,
+        reasoning: result.reasoning,
+        sources: result.sources || [],
+        confidence: result.confidence || 0.5,
+      };
+    } catch (error) {
+      console.error("Error in smartgpt_pro_answer:", error);
+      return {
+        answer: "Sorry, an error occurred while processing your request.",
+        reasoning: "An internal error prevented processing your query.",
+        sources: [],
+        confidence: 0,
+      };
+    }
+  },
+};
 
-  try {
-    // Register tools
-    await registerTools(server);
+console.log("[SmartGPT] Tool registration complete.");
 
-    // Setup transport
-    const transport = new StdioServerTransport();
-
-    transport.onerror = (error) => {
-      console.error(`[SmartGPT MCP] Transport error: ${error.message}`);
-    };
-
-    // Connect the server
-    await server.connect(transport);
-    console.error(
-      "[SmartGPT MCP] Server started and connected successfully via stdio."
-    );
-  } catch (error) {
-    console.error(
-      "[SmartGPT MCP] [FATAL] Server initialization failed:",
-      error
-    );
-    process.exit(1); // Exit if initialization fails
-  }
-}
-
-// Run the server
-main().catch((error) => {
-  console.error("[SmartGPT MCP] [FATAL] Unhandled error in main:", error);
-  process.exit(1);
+// Create MCP server on HTTP
+const server = createServer((req: IncomingMessage, res: ServerResponse) => {
+  res.writeHead(200, { "Content-Type": "text/plain" });
+  res.end("SmartGPT MCP Server Running\n");
 });
 
-// --- Removed Express app setup and endpoints ---
-// --- Removed systemInfo, manifest, cursorTools generation (handled by SDK) ---
-// --- Removed markdownToHtml function ---
-// --- Removed old main function with app.listen ---
+// Create WebSocket server
+const wss = new WebSocketServer({ server });
+
+// Handle WebSocket connections
+wss.on("connection", (ws) => {
+  console.log("[SmartGPT MCP] Client connected");
+
+  // Send hello message
+  ws.send(
+    JSON.stringify({
+      jsonrpc: "2.0",
+      result: {
+        protocolVersion: "2024-11-05",
+        capabilities: {
+          tools: { listChanged: true },
+        },
+        serverInfo: {
+          name: "SmartGPT",
+          version: "0.7.0",
+          description:
+            "AI Assistant Intelligence Toolkit with advanced model access and data processing capabilities",
+        },
+      },
+      id: 0,
+    })
+  );
+
+  // Handle incoming messages
+  ws.on("message", async (message) => {
+    try {
+      const request = JSON.parse(message.toString());
+      console.log(
+        "[SmartGPT MCP] [info] Message from client:",
+        JSON.stringify(request)
+      );
+
+      // Handle different method types
+      if (request.method === "tools/list") {
+        // Return list of available tools
+        ws.send(
+          JSON.stringify({
+            jsonrpc: "2.0",
+            id: request.id,
+            result: {
+              tools: [
+                {
+                  name: "smartgpt_answer",
+                  description:
+                    "Get a concise, accurate answer using SmartGPT intelligence",
+                  inputSchema: {
+                    type: "object",
+                    properties: {
+                      query: {
+                        type: "string",
+                        description:
+                          "The question or request to answer using SmartGPT",
+                      },
+                    },
+                    required: ["query"],
+                    additionalProperties: false,
+                    $schema: "http://json-schema.org/draft-07/schema#",
+                  },
+                },
+                {
+                  name: "smartgpt_pro_answer",
+                  description:
+                    "Get a comprehensive answer with deep reasoning using SmartGPT Pro intelligence",
+                  inputSchema: {
+                    type: "object",
+                    properties: {
+                      query: {
+                        type: "string",
+                        description:
+                          "The question or request to answer using SmartGPT Pro",
+                      },
+                      depth: {
+                        type: "number",
+                        description: "Reasoning depth level (1-5, default: 3)",
+                      },
+                    },
+                    required: ["query"],
+                    additionalProperties: false,
+                    $schema: "http://json-schema.org/draft-07/schema#",
+                  },
+                },
+              ],
+            },
+          })
+        );
+      } else if (request.method === "tools/call") {
+        const { name, arguments: args } = request.params;
+
+        console.log(`[SmartGPT] Invoking tool: ${name}`);
+
+        // Check if tool exists
+        if (tools[name]) {
+          try {
+            // Execute the tool
+            const result = await tools[name](args);
+
+            // Send response
+            ws.send(
+              JSON.stringify({
+                jsonrpc: "2.0",
+                id: request.id,
+                result: { output: result },
+              })
+            );
+          } catch (error) {
+            console.error(`Error executing tool ${name}:`, error);
+            ws.send(
+              JSON.stringify({
+                jsonrpc: "2.0",
+                id: request.id,
+                error: {
+                  code: -32000,
+                  message: `Error executing tool: ${error.message}`,
+                },
+              })
+            );
+          }
+        } else {
+          ws.send(
+            JSON.stringify({
+              jsonrpc: "2.0",
+              id: request.id,
+              error: {
+                code: -32601,
+                message: `Tool not found: ${name}`,
+              },
+            })
+          );
+        }
+      } else {
+        // Method not implemented
+        ws.send(
+          JSON.stringify({
+            jsonrpc: "2.0",
+            id: request.id,
+            error: {
+              code: -32601,
+              message: "Method not found",
+            },
+          })
+        );
+      }
+    } catch (error) {
+      console.error("[SmartGPT MCP] Error processing message:", error);
+      // Send error response
+      try {
+        const request = JSON.parse(message.toString());
+        ws.send(
+          JSON.stringify({
+            jsonrpc: "2.0",
+            id: request.id,
+            error: {
+              code: -32700,
+              message: "Parse error or internal error",
+            },
+          })
+        );
+      } catch (e) {
+        // If we can't parse the original message
+        ws.send(
+          JSON.stringify({
+            jsonrpc: "2.0",
+            id: null,
+            error: {
+              code: -32700,
+              message: "Invalid JSON",
+            },
+          })
+        );
+      }
+    }
+  });
+
+  // Handle disconnection
+  ws.on("close", () => {
+    console.log("[SmartGPT MCP] Client disconnected");
+  });
+});
+
+// Start server
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+  console.log(`[SmartGPT] Server started and listening on port ${PORT}`);
+});
+
+// Ensure stdout is only used for JSON messages
+const originalStdoutWrite = process.stdout.write.bind(process.stdout);
+process.stdout.write = function (
+  chunk: string | Uint8Array,
+  encodingOrCallback?: BufferEncoding | ((err?: Error) => void),
+  callback?: (err?: Error) => void
+): boolean {
+  // Only allow JSON messages to pass through
+  if (typeof chunk === "string" && !chunk.startsWith("{")) {
+    return true; // Silently skip non-JSON messages
+  }
+  return originalStdoutWrite(chunk, encodingOrCallback as any, callback as any);
+};

@@ -28,7 +28,8 @@
     "server:dev": "NODE_OPTIONS=--no-deprecation DEBUG=smartgpt:* tsx smartgpt_mcp_server.ts",
     "server:port": "NODE_OPTIONS=--no-deprecation MCP_PORT=8080 tsx smartgpt_mcp_server.ts",
     "web-search": "tsx examples/web-search-example.ts",
-    "sandbox": "tsx -e \"import { macos_shell } from './src/tools/index.js'; macos_shell({command: 'ls -la'}).then(console.log)\""
+    "sandbox": "tsx -e \"import { macos_shell } from './src/tools/index.js'; macos_shell({command: 'ls -la'}).then(console.log)\"",
+    "test-azr": "tsx test-azr.js"
   },
   "keywords": [
     "ai",

@@ -24,4 +24,10 @@ Thumbs.db
 *.sublime-project
 *.sublime-workspace
 
+# Generated data and search results
+data/
+web_search_results.txt
+*.cache
+
+# Legacy code
 old/
