@@ -1,0 +1,5 @@
+{
+  "name": "smartgpt",
+  "version": "0.7.0",
+  "command": "npx tsx smartgpt_mcp_server.ts"
+}
