@@ -72,7 +72,7 @@ Run SmartGPT as a standalone server exposing all functionality through REST API 
 # Start the MCP server in HTTP mode
 npm run server
 # or
-npx tsx smartgpt_mcp_server_stdio.ts
+npx tsx smartgpt_mcp_server.ts
 ```
 
 This starts a server on port 4141 with comprehensive endpoints:
@@ -94,7 +94,7 @@ Run SmartGPT as an MCP server in stdio mode for direct integration with the Curs
 
 ```bash
 # Start the MCP server in stdio mode
-npx tsx smartgpt_mcp_server_stdio.ts --stdio
+npx tsx smartgpt_mcp_server.ts --stdio
 ```
 
 Or configure it in your Cursor MCP settings in `~/.cursor/mcp.json`:
@@ -107,7 +107,7 @@ Or configure it in your Cursor MCP settings in `~/.cursor/mcp.json`:
       "args": [
         "-y",
         "tsx",
-        "<path_to_script>/smartgpt_mcp_server_stdio.ts",
+        "<path_to_script>/smartgpt_mcp_server.ts",
         "--stdio"
       ],
       "description": "SmartGPT dual-model AI pipeline with comprehensive toolchain",
@@ -333,7 +333,7 @@ The HTTP mode provides a REST API, making it ideal for:
 ```bash
 npm run server
 # or
-npx tsx smartgpt_mcp_server_stdio.ts
+npx tsx smartgpt_mcp_server.ts
 ```
 
 This starts an Express server on port 4141 that provides comprehensive endpoints:
@@ -434,7 +434,7 @@ The STDIO mode enables direct integration with the Cursor IDE, allowing you to:
 To run the server in STDIO mode manually:
 
 ```bash
-npx tsx smartgpt_mcp_server_stdio.ts --stdio
+npx tsx smartgpt_mcp_server.ts --stdio
 ```
 
 For integration with Cursor, configure the MCP in your `~/.cursor/mcp.json` file:
@@ -447,7 +447,7 @@ For integration with Cursor, configure the MCP in your `~/.cursor/mcp.json` file
       "args": [
         "-y",
         "tsx",
-        "<path_to_script>/smartgpt_mcp_server_stdio.ts",
+        "<path_to_script>/smartgpt_mcp_server.ts",
         "--stdio"
       ],
       "description": "SmartGPT dual-model AI pipeline with comprehensive toolchain",
@@ -523,5 +523,5 @@ npm run server:dev
 npm run server:port # Uses port 8080
 
 # Start the MCP server in stdio mode (for Cursor integration)
-npx tsx smartgpt_mcp_server_stdio.ts --stdio
+npx tsx smartgpt_mcp_server.ts --stdio
 ```
