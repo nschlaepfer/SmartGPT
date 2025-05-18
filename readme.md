@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/nschlaepfer-smartgpt-badge.png)](https://mseep.ai/app/nschlaepfer-smartgpt)
+
 # SmartGPT
 
 A TypeScript library for building advanced AI applications with multiple LLM providers, featuring a dual-model pipeline that combines fast reasoning and deep context processing. SmartGPT can be used as a library or as a complete REST API server through its MCP (Model Context Protocol) interface.
