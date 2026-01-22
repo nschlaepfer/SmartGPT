@@ -1,21 +1,16 @@
 import "dotenv/config";
 import { SmartGPT } from "./src/index.js";
 import { writeFileSync } from "fs";
-import { resolve } from "path";
 
 // Flag to determine if we should test experimental features
 const ENABLE_EXPERIMENTAL_FEATURES = true;
 
-// Flag to enable/disable Gemini testing (disabled by default due to quota limits)
-const ENABLE_GEMINI_TESTING = false;
-
 // Create a main SmartGPT instance (without Neo4j)
 const smartGPT = new SmartGPT({
-  apiKey: process.env.OPENAI_API_KEY || "",
-  googleApiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
-  // Optional: use a specific model (defaults to gpt-4.1 for context and o4-mini for reasoning)
-  // contextModel: "gpt-4.1",
-  // reasoningModel: "o4-mini",
+  agentProvider: "codex",
+  // Optional: override models for Codex or Claude Code
+  // reasoningModel: "gpt-5-mini-codex",
+  // contextModel: "gpt-5-codex",
 
   // Neo4j config - Enable Neo4j connection
   neo4j: {
@@ -29,32 +24,6 @@ const smartGPT = new SmartGPT({
   // deep: true,
   // exploreBudget: 512,
 });
-
-// Create a Gemini instance for testing (if available)
-let geminiGPT: SmartGPT | null = null;
-try {
-  if (
-    process.env.GOOGLE_GENERATIVE_AI_API_KEY &&
-    ENABLE_EXPERIMENTAL_FEATURES &&
-    ENABLE_GEMINI_TESTING
-  ) {
-    geminiGPT = new SmartGPT({
-      apiKey: process.env.OPENAI_API_KEY || "", // Still needed as a fallback
-      googleApiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
-      contextModel: "gemini-2.5-pro", // Specify Gemini model for context handling
-      reasoningModel: "gemini-2.5-pro", // Also use Gemini for reasoning
-      useNeo4j: false, // Disable Neo4j for Gemini tests
-    });
-    console.log("[DEBUG] Gemini model initialized successfully");
-  } else {
-    console.log(
-      "[DEBUG] Skipping Gemini tests - API key not found, experimental features disabled, or Gemini testing disabled"
-    );
-  }
-} catch (error: any) {
-  console.error("[DEBUG] Failed to initialize Gemini model:", error.message);
-  geminiGPT = null;
-}
 
 // Helper function to measure execution time and log details
 async function measureExecution(name: string, fn: () => Promise<any>) {
@@ -95,21 +64,15 @@ async function main() {
       2
     )} MB`
   );
-  console.log(
-    `[DEBUG] OpenAI API Key present: ${!!process.env.OPENAI_API_KEY}`
-  );
-  console.log(
-    `[DEBUG] Google API Key present: ${!!process.env
-      .GOOGLE_GENERATIVE_AI_API_KEY}`
-  );
+  console.log(`[DEBUG] Codex login expected (via CLI or API key).`);
   console.log(
     `[DEBUG] Experimental features enabled: ${ENABLE_EXPERIMENTAL_FEATURES}`
   );
   console.log(`[DEBUG] Neo4j available: ${smartGPT.isNeo4jAvailable()}`);
 
   try {
-    // =========== Testing with OpenAI (default) ==========
-    console.log("\n===== TESTING WITH DEFAULT MODEL (OpenAI) =====");
+    // =========== Testing with Codex (default) ==========
+    console.log("\n===== TESTING WITH DEFAULT MODEL (Codex) =====");
 
     // Basic question
     console.log("\nBasic ask example 1:");

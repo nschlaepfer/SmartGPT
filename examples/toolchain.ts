@@ -4,13 +4,8 @@
 import { SmartGPT } from "../src/index.js";
 import {
   macos_shell,
-  read_csv,
   read_json,
-  read_markdown,
-  openai_completion,
-  anthropic_completion,
-  google_gemini,
-  groq_completion,
+  codex_sdk,
 } from "../src/tools/index.js";
 import * as dotenv from "dotenv";
 import fs from "fs";
@@ -21,31 +16,20 @@ dotenv.config();
 
 // Ensure API keys are loaded and print verification
 console.log("Environment variables loaded:");
-console.log(
-  `- OPENAI_API_KEY: ${process.env.OPENAI_API_KEY ? "✓ Present" : "✗ Missing"}`
-);
+console.log(`- Codex login: use Codex CLI/IDE auth`);
 console.log(
   `- ANTHROPIC_API_KEY: ${
     process.env.ANTHROPIC_API_KEY ? "✓ Present" : "✗ Missing"
   }`
 );
 console.log(
-  `- GOOGLE_GENERATIVE_AI_API_KEY: ${
-    process.env.GOOGLE_GENERATIVE_AI_API_KEY ? "✓ Present" : "✗ Missing"
-  }`
-);
-console.log(
-  `- GROQ_API_KEY: ${process.env.GROQ_API_KEY ? "✓ Present" : "✗ Missing"}`
-);
-console.log(
   `- SERPER_API_KEY: ${process.env.SERPER_API_KEY ? "✓ Present" : "✗ Missing"}`
 );
 
 const smartGPT = new SmartGPT({
-  apiKey: process.env.OPENAI_API_KEY || "",
-  googleApiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
-  reasoningModel: "o4-mini",
-  contextModel: "gpt-4.1",
+  agentProvider: "codex",
+  reasoningModel: "gpt-5-mini-codex",
+  contextModel: "gpt-5-codex",
   deep: true,
   serperApiKey: process.env.SERPER_API_KEY,
 });
@@ -77,8 +61,8 @@ async function runToolchainExample() {
     name: "SmartGPT",
     features: ["Dual-Model Pipeline", "Advanced Reasoning", "Tool Integration"],
     models: {
-      reasoning: "o4-mini",
-      context: "gpt-4.1",
+      reasoning: "gpt-5-mini-codex",
+      context: "gpt-5-codex",
     },
   };
   fs.writeFileSync(testDataPath, JSON.stringify(testData, null, 2));
@@ -96,22 +80,19 @@ async function runToolchainExample() {
     );
   }
 
-  // 4. Use the OpenAI model to analyze the JSON data
-  console.log("\n🧠 Using OpenAI model to analyze data...");
+  // 4. Use Codex to analyze the JSON data
+  console.log("\n🧠 Using Codex to analyze data...");
   try {
     const prompt = `Analyze this JSON data and explain its structure and purpose:\n${JSON.stringify(
       testData,
       null,
       2
     )}`;
-    const openaiResult = await openai_completion({
-      prompt,
-      model: "gpt-3.5-turbo",
-    });
-    console.log(`📄 OpenAI analysis:\n${openaiResult.completion}`);
+    const codexResult = await codex_sdk({ prompt });
+    console.log(`📄 Codex analysis:\n${codexResult.completion}`);
   } catch (error) {
     console.error(
-      `❌ OpenAI error: ${
+      `❌ Codex error: ${
         error instanceof Error ? error.message : String(error)
       }`
     );

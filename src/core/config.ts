@@ -1,9 +1,9 @@
 // Configuration values for SmartGPT
 
 export const DEFAULT_MODELS = {
-  reasoning: "o4-mini",
-  context: "gpt-4.1",
-  embedding: "text-embedding-3-small",
+  reasoning: "gpt-5-mini-codex",
+  context: "gpt-5-codex",
+  embedding: "local-hash-384",
 };
 
 export const NEO4J_DEFAULTS = {

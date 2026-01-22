@@ -9,10 +9,8 @@ export { macos_shell } from "./sandbox.js";
 
 // AI model provider tools
 export {
-  openai_completion,
-  anthropic_completion,
-  google_gemini,
-  groq_completion,
+  codex_sdk,
+  claude_code_sdk,
 } from "./models.js";
 
 // Web search tool
@@ -33,7 +31,14 @@ export const TOOLS_JSON = JSON.stringify(
           ([key, schema]: [string, any]) => [
             key,
             {
-              type: schema._def.typeName === "ZodNumber" ? "number" : "string",
+              type:
+                schema._def.typeName === "ZodNumber"
+                  ? "number"
+                  : schema._def.typeName === "ZodArray"
+                  ? "array"
+                  : schema._def.typeName === "ZodObject"
+                  ? "object"
+                  : "string",
               description: schema.description,
             },
           ]

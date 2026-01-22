@@ -81,8 +81,7 @@ Modify your `example.ts` file to include Neo4j configuration:
 ```typescript
 // Create a SmartGPT instance with Neo4j
 const smartGPT = new SmartGPT({
-  apiKey: process.env.OPENAI_API_KEY || "",
-  googleApiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
+  agentProvider: "codex",
 
   // Neo4j config
   neo4j: {
