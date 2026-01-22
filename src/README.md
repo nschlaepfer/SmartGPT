@@ -11,7 +11,6 @@ This directory contains the modular implementation of SmartGPT.
   * `prompts.json` - Static prompts
 
 * `models/` - LLM interaction
-  * `providers.ts` - Provider utilities for OpenAI and Google
   * `llm.ts` - Language model interaction
   * `embedder.ts` - Text embedding functionality
 

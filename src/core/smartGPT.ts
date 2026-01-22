@@ -1,18 +1,18 @@
 // SmartGPT - Main class that integrates all components
-import OpenAI from "openai";
-import { State } from "./types.js";
+import { ChatMsg, SmartOpts, State } from "./types.js";
 import { Embedder } from "../models/embedder.js";
 import { MemoryStore } from "../memory/memory.js";
+import { MemvidMemory } from "../memory/memvid.js";
 import {
   Retriever,
   HippoRetriever,
   FallbackRetriever,
 } from "../search/retrievers.js";
+import { MemvidRetriever } from "../search/memvidRetriever.js";
 import { DeepExplorer } from "../search/deepExplorer.js";
 import { rawCall, callStructured } from "../models/llm.js";
 import neo4j, { Driver } from "neo4j-driver";
-import { z, ZodType } from "zod";
-import { ChatMsg } from "./types.js";
+import { z } from "zod";
 
 // Dynamically import node-fetch when needed
 type FetchResponse = {
@@ -34,23 +34,6 @@ type ContentResult = {
   content: string;
 } | null;
 
-interface SmartOpts {
-  apiKey: string;
-  googleApiKey?: string;
-  reasoningModel?: string; // default o4-mini
-  contextModel?: string; // default gpt-4.1
-  embedModel?: string;
-  deep?: boolean;
-  exploreBudget?: number;
-  neo4j?: {
-    url?: string;
-    username?: string;
-    password?: string;
-  };
-  useNeo4j?: boolean;
-  serperApiKey?: string;
-}
-
 export class SmartGPT {
   private embedder: Embedder;
   private memory!: MemoryStore;
@@ -59,20 +42,23 @@ export class SmartGPT {
   private readonly reasoningModel: string;
   private readonly contextModel: string;
   private deepx: DeepExplorer | null = null;
+  private memvid: MemvidMemory | null = null;
+  private readonly agentProvider: SmartOpts["agentProvider"];
+  private readonly codexOptions: SmartOpts["codex"];
+  private readonly claudeOptions: SmartOpts["claude"];
 
   constructor(private opts: SmartOpts) {
-    if (!opts.apiKey) throw new Error("OPENAI_API_KEY required");
-    process.env.OPENAI_API_KEY = opts.apiKey;
-    if (opts.googleApiKey)
-      process.env.GOOGLE_GENERATIVE_AI_API_KEY = opts.googleApiKey;
     if (opts.serperApiKey) process.env.SERPER_API_KEY = opts.serperApiKey;
 
     // Models setup
-    this.reasoningModel = opts.reasoningModel ?? "o4-mini";
-    this.contextModel = opts.contextModel ?? "gpt-4.1";
+    this.reasoningModel = opts.reasoningModel ?? "gpt-5-mini-codex";
+    this.contextModel = opts.contextModel ?? "gpt-5-codex";
+    this.agentProvider = opts.agentProvider ?? "codex";
+    this.codexOptions = opts.codex;
+    this.claudeOptions = opts.claude;
 
     // Initialize embedder first
-    this.embedder = new Embedder(opts.embedModel);
+    this.embedder = new Embedder(opts.embedDim ?? 384);
 
     // Initialize memory and retriever asynchronously
     this.initializeAsync();
@@ -83,7 +69,12 @@ export class SmartGPT {
         const arr = await callStructured(
           this.reasoningModel,
           `List ${k} next actions as JSON array for state: ${s.hash()}`,
-          z.array(z.string())
+          z.array(z.string()),
+          {
+            provider: this.agentProvider,
+            codex: this.codexOptions,
+            claude: this.claudeOptions,
+          }
         );
         return arr.map((lbl) => ({
           label: lbl,
@@ -103,6 +94,9 @@ export class SmartGPT {
             messages: [
               { role: "user", content: `Rate 0-1 for state: ${s.hash()}` },
             ],
+            provider: this.agentProvider,
+            codex: this.codexOptions,
+            claude: this.claudeOptions,
           })) as string
         );
 
@@ -121,8 +115,24 @@ export class SmartGPT {
       const dim = await this.embedder.dim();
       this.memory = new MemoryStore(dim);
 
+      let retrieverReady = false;
+
+      if (this.opts.memvid) {
+        try {
+          this.memvid = await MemvidMemory.open(this.opts.memvid);
+          this.retriever = new MemvidRetriever(
+            this.memvid,
+            this.opts.memvid.mode
+          );
+          console.log("[SmartGPT] Memvid retriever initialized successfully");
+          retrieverReady = true;
+        } catch (error) {
+          console.warn("[SmartGPT] Failed to initialize Memvid:", error);
+        }
+      }
+
       // Setup retriever once memory is initialized
-      if (this.opts.useNeo4j !== false && this.opts.neo4j) {
+      if (!retrieverReady && this.opts.useNeo4j !== false && this.opts.neo4j) {
         try {
           const neo4jUrl = this.opts.neo4j.url || "bolt://localhost:7687";
           const neo4jUser = this.opts.neo4j.username || "neo4j";
@@ -151,7 +161,7 @@ export class SmartGPT {
           );
           this.neo4jAvailable = false;
         }
-      } else {
+      } else if (!retrieverReady) {
         // Use fallback if Neo4j is not requested
         this.retriever = new FallbackRetriever(this.memory, (t) =>
           this.embedder.embed(t)
@@ -183,6 +193,9 @@ export class SmartGPT {
     const draft = await rawCall({
       model: this.reasoningModel,
       messages: messages,
+      provider: this.agentProvider,
+      codex: this.codexOptions,
+      claude: this.claudeOptions,
     });
 
     // 2️⃣ Refine / extend with contextModel (e.g. gpt‑4.1 with million‑token window)
@@ -196,6 +209,9 @@ export class SmartGPT {
         },
         { role: "user", content: draft as string },
       ],
+      provider: this.agentProvider,
+      codex: this.codexOptions,
+      claude: this.claudeOptions,
     });
   }
 
@@ -337,6 +353,9 @@ export class SmartGPT {
                       content: html.slice(0, 100000), // Limit initial HTML
                     },
                   ],
+                  provider: this.agentProvider,
+                  codex: this.codexOptions,
+                  claude: this.claudeOptions,
                 });
 
                 return {
@@ -402,6 +421,9 @@ export class SmartGPT {
             content: `Web search: ${query}`,
           },
         ],
+        provider: this.agentProvider,
+        codex: this.codexOptions,
+        claude: this.claudeOptions,
       });
 
       // Split the content into search result snippets
@@ -466,6 +488,9 @@ export class SmartGPT {
         (await rawCall({
           model: this.reasoningModel,
           messages: messages,
+          provider: this.agentProvider,
+          codex: this.codexOptions,
+          claude: this.claudeOptions,
         })) as string
       );
     }
@@ -483,6 +508,9 @@ export class SmartGPT {
             },
             { role: "user", content: draft },
           ],
+          provider: this.agentProvider,
+          codex: this.codexOptions,
+          claude: this.claudeOptions,
         })) as string
       );
     }
@@ -503,6 +531,9 @@ export class SmartGPT {
               content: `Answer:\n${drafts[i]}\n\nCritique:\n${critiques[i]}`,
             },
           ],
+          provider: this.agentProvider,
+          codex: this.codexOptions,
+          claude: this.claudeOptions,
         })) as string
       );
     }
@@ -525,6 +556,9 @@ export class SmartGPT {
               },
               { role: "user", content: panel },
             ],
+            provider: this.agentProvider,
+            codex: this.codexOptions,
+            claude: this.claudeOptions,
           })) as string
         ).match(/\d+/)?.[0] || "1",
         10
