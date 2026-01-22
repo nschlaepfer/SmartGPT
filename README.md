@@ -71,8 +71,8 @@ Authentication:
 - Claude Code: sign in with a Claude subscription or use an Anthropic Console API key.
 
 Model selection:
-- Codex models are configured via Codex (or pass `model` to the `codex_sdk` tool). The default SmartGPT models are `gpt-5-mini-codex` (reasoning) and `gpt-5-codex` (context). 
-- Claude Code supports model aliases and full model names. You can set the model via `/model`, `claude --model`, `ANTHROPIC_MODEL`, or your settings file. The `claude_code_sdk` tool accepts `model` too.
+- Codex models are configured via Codex (or pass `model` to the `codex_sdk` tool). If you omit `reasoningModel`/`contextModel`, SmartGPT lets the Codex SDK choose its default.
+- Claude Code supports model aliases and full model names. You can set the model via `/model`, `claude --model`, `ANTHROPIC_MODEL`, or your settings file. If you omit `reasoningModel`/`contextModel`, SmartGPT lets the Claude SDK choose its default.
 
 Note: The Claude Code SDK was renamed to the Claude Agent SDK. This repo uses the new package name but still supports the old one if you have it installed.
 

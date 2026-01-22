@@ -39,8 +39,8 @@ export class SmartGPT {
   private memory!: MemoryStore;
   private retriever!: Retriever;
   private neo4jAvailable = false;
-  private readonly reasoningModel: string;
-  private readonly contextModel: string;
+  private readonly reasoningModel: string | undefined;
+  private readonly contextModel: string | undefined;
   private deepx: DeepExplorer | null = null;
   private memvid: MemvidMemory | null = null;
   private readonly agentProvider: SmartOpts["agentProvider"];
@@ -51,9 +51,15 @@ export class SmartGPT {
     if (opts.serperApiKey) process.env.SERPER_API_KEY = opts.serperApiKey;
 
     // Models setup
-    this.reasoningModel = opts.reasoningModel ?? "gpt-5-mini-codex";
-    this.contextModel = opts.contextModel ?? "gpt-5-codex";
     this.agentProvider = opts.agentProvider ?? "codex";
+    const providerDefaultModel =
+      this.agentProvider === "claude"
+        ? opts.claude?.model
+        : this.agentProvider === "codex"
+          ? opts.codex?.model
+          : opts.codex?.model ?? opts.claude?.model;
+    this.reasoningModel = opts.reasoningModel ?? providerDefaultModel;
+    this.contextModel = opts.contextModel ?? providerDefaultModel;
     this.codexOptions = opts.codex;
     this.claudeOptions = opts.claude;
 

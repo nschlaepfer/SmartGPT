@@ -8,7 +8,7 @@ const ENABLE_EXPERIMENTAL_FEATURES = true;
 // Create a main SmartGPT instance (without Neo4j)
 const smartGPT = new SmartGPT({
   agentProvider: "codex",
-  // Optional: override models for Codex or Claude Code
+  // Optional: override models for Codex or Claude Code (SDK defaults are used if omitted)
   // reasoningModel: "gpt-5-mini-codex",
   // contextModel: "gpt-5-codex",
 
