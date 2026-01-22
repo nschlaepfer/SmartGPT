@@ -49,7 +49,9 @@ export interface SmartOpts {
   claude?: {
     model?: string;
     maxTurns?: number;
-    systemPrompt?: string;
+    systemPrompt?:
+      | string
+      | { type: "preset"; preset: "claude_code"; append?: string };
     allowedTools?: string[];
     cwd?: string;
   };

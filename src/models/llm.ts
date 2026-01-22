@@ -8,16 +8,23 @@ export interface CodexAgentOptions {
   model?: string;
 }
 
+export type ClaudeSystemPrompt =
+  | string
+  | { type: "preset"; preset: "claude_code"; append?: string };
+
 export interface ClaudeAgentOptions {
   model?: string;
   maxTurns?: number;
-  systemPrompt?: string;
+  systemPrompt?: ClaudeSystemPrompt;
   allowedTools?: string[];
   cwd?: string;
 }
 
+const SCHEMA_INSTRUCTION =
+  "Return ONLY valid JSON that conforms to the requested schema.";
+
 export interface RawCallOptions {
-  model: string;
+  model?: string;
   messages: ChatMsg[];
   func?: any[];
   schema?: z.ZodType<any>;
@@ -35,9 +42,7 @@ function buildPrompt(messages: ChatMsg[], schema?: z.ZodType<any>) {
   });
 
   if (schema) {
-    parts.push(
-      "SYSTEM:\nReturn ONLY valid JSON that conforms to the requested schema."
-    );
+    parts.push(`SYSTEM:\n${SCHEMA_INSTRUCTION}`);
   }
 
   return parts.join("\n\n");
@@ -57,12 +62,40 @@ function extractUserPrompt(messages: ChatMsg[]) {
     .join("\n\n");
 }
 
-function resolveProvider(model: string, provider?: AgentProvider): AgentProvider {
+function resolveProvider(
+  model: string | undefined,
+  provider?: AgentProvider
+): AgentProvider {
   if (provider && provider !== "auto") return provider;
   const envProvider =
     process.env.SMARTGPT_PROVIDER?.toLowerCase() as AgentProvider | undefined;
   if (envProvider && envProvider !== "auto") return envProvider;
-  return model.toLowerCase().includes("claude") ? "claude" : "codex";
+  return model?.toLowerCase().includes("claude") ? "claude" : "codex";
+}
+
+function appendSchemaInstruction(
+  basePrompt: string,
+  schema?: z.ZodType<any>
+) {
+  if (!schema) return basePrompt;
+  if (!basePrompt) return SCHEMA_INSTRUCTION;
+  return `${basePrompt}\n\n${SCHEMA_INSTRUCTION}`;
+}
+
+function appendSchemaToSystemPrompt(
+  systemPrompt: ClaudeSystemPrompt | undefined,
+  schema?: z.ZodType<any>
+): ClaudeSystemPrompt | undefined {
+  if (!schema) return systemPrompt;
+  if (!systemPrompt) return SCHEMA_INSTRUCTION;
+  if (typeof systemPrompt === "string") {
+    return appendSchemaInstruction(systemPrompt, schema);
+  }
+  if (systemPrompt.type === "preset") {
+    const append = appendSchemaInstruction(systemPrompt.append ?? "", schema);
+    return { ...systemPrompt, append };
+  }
+  return systemPrompt;
 }
 
 async function runCodex(prompt: string, model?: string): Promise<string> {
@@ -155,9 +188,13 @@ export const rawCall = async (
     if (provider === "claude") {
       const systemPrompt = extractSystem(messages);
       const userPrompt = extractUserPrompt(messages);
+      const resolvedSystemPrompt = appendSchemaToSystemPrompt(
+        options.claude?.systemPrompt ?? systemPrompt,
+        schema
+      );
       content = await runClaude(userPrompt, {
         model: options.claude?.model ?? model,
-        systemPrompt: options.claude?.systemPrompt ?? systemPrompt,
+        systemPrompt: resolvedSystemPrompt,
         maxTurns: options.claude?.maxTurns ?? 1,
         allowedTools: options.claude?.allowedTools,
         cwd: options.claude?.cwd,
@@ -174,7 +211,7 @@ export const rawCall = async (
 };
 
 export const callStructured = async <T>(
-  model: string,
+  model: string | undefined,
   prompt: string,
   schema: z.ZodType<T>,
   options?: {
